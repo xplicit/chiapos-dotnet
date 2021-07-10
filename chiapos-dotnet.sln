@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chiapos.Dotnet", "src\Chiapos.Dotnet\Chiapos.Dotnet.csproj", "{E51CFC93-DE4E-483D-9BC2-29D3F44DDE8F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chiapos.Dotnet.Tests", "tests\Chiapos.Dotnet.Tests\Chiapos.Dotnet.Tests.csproj", "{C23C79D1-2E96-489D-8014-47877EA6FCC9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3rdparty", "3rdparty", "{97358EFC-80FB-4FB2-9DE6-4A2BA8112205}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FiniteStateEntropy", "3rdparty\3rdparty\fse\src\FiniteStateEntropy\FiniteStateEntropy.csproj", "{28AD15C3-2D81-4716-96FC-36C4F1046BD4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E51CFC93-DE4E-483D-9BC2-29D3F44DDE8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E51CFC93-DE4E-483D-9BC2-29D3F44DDE8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E51CFC93-DE4E-483D-9BC2-29D3F44DDE8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E51CFC93-DE4E-483D-9BC2-29D3F44DDE8F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C23C79D1-2E96-489D-8014-47877EA6FCC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C23C79D1-2E96-489D-8014-47877EA6FCC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C23C79D1-2E96-489D-8014-47877EA6FCC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C23C79D1-2E96-489D-8014-47877EA6FCC9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{28AD15C3-2D81-4716-96FC-36C4F1046BD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{28AD15C3-2D81-4716-96FC-36C4F1046BD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{28AD15C3-2D81-4716-96FC-36C4F1046BD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{28AD15C3-2D81-4716-96FC-36C4F1046BD4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{28AD15C3-2D81-4716-96FC-36C4F1046BD4} = {97358EFC-80FB-4FB2-9DE6-4A2BA8112205}
+	EndGlobalSection
+EndGlobal

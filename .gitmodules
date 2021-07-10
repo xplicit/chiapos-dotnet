@@ -1,0 +1,6 @@
+[submodule "3rdparty/fse"]
+	path = 3rdparty/fse
+	url = https://github.com/xplicit/FiniteStateEntropy
+[submodule "3rdparty/3rdparty/fse"]
+	path = 3rdparty/3rdparty/fse
+	url = https://github.com/xplicit/FiniteStateEntropy
