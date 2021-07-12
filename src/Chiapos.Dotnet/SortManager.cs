@@ -300,5 +300,9 @@ namespace Chiapos.Dotnet
 
 
         public string GetFileName() => "<SortManager>";
+
+        public void Reset()
+        {
+        }
     }
 }

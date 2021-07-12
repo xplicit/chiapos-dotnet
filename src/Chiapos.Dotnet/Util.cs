@@ -1,4 +1,5 @@
 using System;
+using System.Buffers.Binary;
 using Dirichlet.Numerics;
 
 namespace Chiapos.Dotnet
@@ -72,6 +73,9 @@ namespace Chiapos.Dotnet
             var result = BitConverter.ToUInt64(bytes);
             return SwapBytes(result);
         }
+
+        public static bool IntToTwoBytes(Span<byte> bytes, ushort value) =>
+            BinaryPrimitives.TryWriteUInt16BigEndian(bytes, value);
         
         public static void IntTo16Bytes(Span<byte> result, UInt128 input)
         {

@@ -154,5 +154,8 @@ namespace Chiapos.Dotnet.Collections
             m_array = tmp.m_array;
             m_length = tmp.m_length;
         }
+
+        public void ToBytes(byte[] array) => CopyTo(array, 0);
+        public void ToBytes(byte[] array, int index) => CopyTo(array, index);
     }
 }
