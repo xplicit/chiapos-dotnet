@@ -213,6 +213,15 @@ namespace Chiapos.Dotnet.Collections
             m_length = tmp.m_length;
         }
 
+        public BitArray Slice(int start, int end)
+        {
+            m_length = end;
+            LeftShift(start);
+            m_length = end - start;
+
+            return this;
+        }
+
         public void ToBytes(byte[] array) => CopyTo(array, 0);
         public void ToBytes(byte[] array, int index) => CopyTo(array, index);
     }
