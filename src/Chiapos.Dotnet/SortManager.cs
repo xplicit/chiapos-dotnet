@@ -154,7 +154,7 @@ namespace Chiapos.Dotnet
                 next_bucket_to_sort < (ulong)buckets_.Count);
         }
         
-        void TriggerNewBucket(ulong position)
+        public void TriggerNewBucket(ulong position)
         {
             if (!(position <= final_position_end)) {
                 throw new InvalidDataException("Triggering bucket too late");
