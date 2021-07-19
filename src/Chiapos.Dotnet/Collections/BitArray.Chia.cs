@@ -1,4 +1,6 @@
 using System;
+using System.Buffers.Binary;
+using System.Diagnostics;
 using Dirichlet.Numerics;
 
 namespace Chiapos.Dotnet.Collections
@@ -94,6 +96,62 @@ namespace Chiapos.Dotnet.Collections
                 }
             }
         }
+        
+                /*=========================================================================
+        ** Allocates space to hold the bit values in bytes. bytes[0] represents
+        ** bits 0 - 7, bytes[1] represents bits 8 - 15, etc. The LSB of each byte
+        ** represents the lowest index value; bytes[0] & 1 represents bit 0,
+        ** bytes[0] & 2 represents bit 1, bytes[0] & 4 represents bit 2, etc.
+        **
+        ** Exceptions: ArgumentException if bytes == null.
+        =========================================================================*/
+        public BitArray(ReadOnlySpan<byte> bytes, int length)
+        {
+            if (bytes == null)
+                throw new ArgumentNullException(nameof(bytes));
+
+            // this value is chosen to prevent overflow when computing m_length.
+            // m_length is of type int32 and is exposed as a property, so
+            // type of m_length can't be changed to accommodate.
+            if (length > int.MaxValue / BitsPerByte)
+                throw new ArgumentException(SR.Format(SR.Argument_ArrayTooLarge, BitsPerByte), nameof(bytes));
+
+            if (length > bytes.Length * BitsPerByte)
+                throw new ArgumentException($"Number of bits should be less then number of bytes * {BitsPerByte}");
+
+            m_array = new int[GetInt32ArrayLengthFromBitLength(length)];
+            m_length = length;
+
+            uint totalCount = (uint)bytes.Length / 4;
+
+            ReadOnlySpan<byte> byteSpan = bytes;
+            for (int i = 0; i < totalCount; i++)
+            {
+                m_array[i] = BinaryPrimitives.ReadInt32LittleEndian(byteSpan);
+                byteSpan = byteSpan.Slice(4);
+            }
+
+            Debug.Assert(byteSpan.Length >= 0 && byteSpan.Length < 4);
+
+            int last = 0;
+            switch (byteSpan.Length)
+            {
+                case 3:
+                    last = byteSpan[2] << 16;
+                    goto case 2;
+                // fall through
+                case 2:
+                    last |= byteSpan[1] << 8;
+                    goto case 1;
+                // fall through
+                case 1:
+                    m_array[totalCount] = last | byteSpan[0];
+                    break;
+            }
+
+            _version = 0;
+        }
+
         
         public ulong GetValue()
         {

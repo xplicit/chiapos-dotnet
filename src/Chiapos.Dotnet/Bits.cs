@@ -13,5 +13,9 @@ namespace Chiapos.Dotnet
         public Bits(ReadOnlySpan<ulong> values, int valueLength) : base(values, valueLength)
         {
         }
+
+        public Bits(ReadOnlySpan<byte> values, int bitsLength) : base(values, bitsLength)
+        {
+        }
     }
 }
