@@ -108,7 +108,7 @@ namespace Chiapos.Dotnet
 
         // F1(x) values for x in range [first_x, first_x + n) are placed in res[].
         // n must not be more than 1 << kBatchSizes.
-        void CalculateBuckets(ulong first_x, ulong n, ulong[] res)
+        public void CalculateBuckets(ulong first_x, ulong n, ulong[] res)
         {
             ulong start = first_x * k_ / Constants.kF1BlockSizeBits;
             // 'end' is one past the last keystream block number to be generated
