@@ -17,5 +17,7 @@ namespace Chiapos.Dotnet
         public Bits(ReadOnlySpan<byte> values, int bitsLength) : base(values, bitsLength)
         {
         }
+
+        public new Bits AppendValue(UInt128 value, int length) => (Bits) base.AppendValue(value, length);
     }
 }

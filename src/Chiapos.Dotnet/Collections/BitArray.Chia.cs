@@ -117,7 +117,7 @@ namespace Chiapos.Dotnet.Collections
                 throw new ArgumentException(SR.Format(SR.Argument_ArrayTooLarge, BitsPerByte), nameof(bytes));
 
             if (length > bytes.Length * BitsPerByte)
-                throw new ArgumentException($"Number of bits should be less then number of bytes * {BitsPerByte}");
+                throw new NotImplementedException($"Number of bits should be less then number of bytes * {BitsPerByte}. Implement note: add zero bits at start");
 
             m_array = new int[GetInt32ArrayLengthFromBitLength(length)];
             m_length = length;
@@ -163,7 +163,7 @@ namespace Chiapos.Dotnet.Collections
             return (ulong)m_array[0] + (ulong)m_array[1] << 32;
         }
 
-        public void AppendValue(UInt128 value, int length)
+        public BitArray AppendValue(UInt128 value, int length)
         {
             var newsize = m_length + length;
             //TODO: Remove Extra allocation and copying
@@ -211,6 +211,8 @@ namespace Chiapos.Dotnet.Collections
 
             m_array = tmp.m_array;
             m_length = tmp.m_length;
+
+            return this;
         }
 
         public BitArray Slice(int start, int end)
