@@ -226,5 +226,39 @@ namespace Chiapos.Dotnet.Collections
 
         public void ToBytes(byte[] array) => CopyTo(array, 0);
         public void ToBytes(byte[] array, int index) => CopyTo(array, index);
+
+        public static BitArray operator + (BitArray a, BitArray b)
+        {
+            BitArray result = new BitArray(a.m_length + b.m_length);
+            
+            a.CopyTo(result.m_array, 0);
+            
+            var aLength = Div32Rem(a.m_length, out int shiftCount);
+            var bLength = (b.m_length + BitsPerInt32 - 1) >> BitShiftPerInt32;
+            var resultLength = Div32Rem(result.m_length, out int resultShift);
+
+            if (shiftCount == 0)
+            {
+                Array.Copy(b.m_array, 0, result.m_array, aLength, bLength);
+                return result;
+            }
+
+            int resultIndex = aLength;
+            result.m_array[resultIndex++] |= b.m_array[0] << shiftCount;
+            
+            for (int i = 0; i < bLength - 1; i++)
+            {
+                uint right = (uint)b.m_array[i] >> (BitsPerInt32 - shiftCount);
+                int left = b.m_array[i + 1] << shiftCount;
+                result.m_array[resultIndex++] = left | (int)right;
+            }
+
+            if (resultShift > 0)
+            {
+                result.m_array[resultIndex] = b.m_array[^1] >> (BitsPerInt32 - shiftCount);
+            }
+
+            return result;
+        }
     }
 }

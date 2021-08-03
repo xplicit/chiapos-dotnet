@@ -1,7 +1,10 @@
+using System;
 using System.Collections;
+using NUnit.Framework;
 
 namespace Chiapos.Dotnet.Tests
 {
+    [TestFixture]
     public class BitsTests
     {
         public void Slicing_and_Manipulation()
@@ -88,5 +91,73 @@ namespace Chiapos.Dotnet.Tests
     }
 }
 */
+        [Test]
+        public void OperatorPlus_BothArraysHaveNoRemainingBits()
+        {
+            var bitsA = new byte[] {0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55};
+            var bitsB = new byte[] {0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
+
+            Bits a = new Bits(new ReadOnlySpan<byte>(bitsA, 0, 4), 32);
+            Bits b = new Bits(new ReadOnlySpan<byte>(bitsB, 0, 4), 32);
+
+            var c = a + b;
+            var expected = new byte[] {0x55, 0x55, 0x55, 0x55, 0xAA, 0xAA, 0xAA, 0xAA};
+            AssertBitsArray(c, expected, 64);
+
+            a = new Bits(bitsA, 64);
+            b = new Bits(new ReadOnlySpan<byte>(bitsB, 0, 4), 32);
+
+            c = a + b;
+            expected = new byte[] {0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0xAA, 0xAA, 0xAA, 0xAA};
+            AssertBitsArray(c, expected, 96);
+            
+            a = new Bits(bitsA, 64);
+            b = new Bits(bitsB, 64);
+
+            c = a + b;
+            expected = new byte[] {0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
+            AssertBitsArray(c, expected, 128);
+        }
+
+        [Test]
+        public void OperatorPlus_FirstArrayHaveFiveRemainingBits()
+        {
+            var bitsA = new byte[] {0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55};
+            var bitsB = new byte[] {0xAF, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
+            
+            Bits a = new Bits(new ReadOnlySpan<byte>(bitsA, 0, 5), 32 + 5);
+            Bits b = new Bits(bitsB, 64);
+
+            var c = a + b;
+            var expected = new byte[] {0x55, 0x55, 0x55, 0b_0101_0101, 0b_111_10101, 0b_010_10101, 0x55, 0x55, 0x55, 0x55, 0x55, 0b_0101_0101, 0b_000_10101};
+            AssertBitsArray(c, expected, 64 + 32 + 5);
+        }
+
+        [Test]
+        public void OperatorPlus_SumOfArraysHaveNoRemainingBits()
+        {
+            var bitsA = new byte[] {0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55};
+            var bitsB = new byte[] {0xAF, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
+
+            Bits a = new Bits(new ReadOnlySpan<byte>(bitsA, 0, 5), 32 + 5);
+            Bits b = new Bits(bitsB,64 - 5);
+            
+            var c = a + b;
+            var expected = new byte[] {0x55, 0x55, 0x55, 0b_0101_0101, 0b_111_10101, 0b_010_10101, 0x55, 0x55, 0x55, 0x55, 0x55, 0b_0101_0101};
+            AssertBitsArray(c, expected, 64 + 32);
+        }
+
+        private void AssertBitsArray(Bits actual, byte[] expectedArray, int expectedLength)
+        {
+            Assert.That(actual.Length, Is.EqualTo(expectedLength));
+
+            var actualArray = new byte[expectedLength / sizeof(byte) + 1];
+            actual.ToBytes(actualArray);
+            
+            for (int i = 0; i < expectedArray.Length; i++)
+            {
+                Assert.That(actualArray[i], Is.EqualTo(expectedArray[i]), $"{i}: actual byte = {actualArray[i]:X}, expected byte = {expectedArray[i]:X}");
+            }
+        }
     }
 }

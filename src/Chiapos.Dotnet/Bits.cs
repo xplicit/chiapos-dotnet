@@ -6,6 +6,10 @@ namespace Chiapos.Dotnet
 {
     public class Bits : BitArray
     {
+        public Bits(BitArray value) : base(value)
+        {
+        }
+
         public Bits(UInt128 value, int length) : base(value, length)
         {
         }
@@ -19,5 +23,7 @@ namespace Chiapos.Dotnet
         }
 
         public new Bits AppendValue(UInt128 value, int length) => (Bits) base.AppendValue(value, length);
+
+        public static Bits operator +(Bits a, Bits b) => new Bits((BitArray) a + (BitArray) b);
     }
 }
