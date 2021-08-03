@@ -7,7 +7,6 @@ namespace Chiapos.Dotnet
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
             var startupData = new StartupData();
 
             var p = new OptionSet
@@ -16,19 +15,19 @@ namespace Chiapos.Dotnet
                     "k|size", "Plot size", v => startupData.k = byte.Parse(v)
                 },
                 {
-                    "r|threads", "Number of threads", v => startupData.num_threads = int.Parse(v)
+                    "r|threads", "Number of threads", v => startupData.num_threads = byte.Parse(v)
                 },
                 {
-                    "u|buckets", "Number of buckets", v => startupData.num_buckets = int.Parse(v)
+                    "u|buckets", "Number of buckets", v => startupData.num_buckets = uint.Parse(v)
                 },
                 {
-                    "s|stripes", "Size of stripes", v => startupData.num_stripes = int.Parse(v)
+                    "s|stripes", "Size of stripes", v => startupData.num_stripes = ulong.Parse(v)
                 },
                 {
                     "t|tempdir", "Temporary directory", v => startupData.tempdir = v
                 },
                 {
-                    "2|tempdir2", "Second temporary directory", v => startupData.tmpdir2 = v
+                    "2|tempdir2", "Second temporary directory", v => startupData.tempdir2 = v
                 },
                 {
                     "d|finaldir", "Final directory", v => startupData.finaldir = v
@@ -43,14 +42,31 @@ namespace Chiapos.Dotnet
                     "i|id", "Unique 32-byte seed for the plot", v => startupData.id = v
                 },
                 {
-                    "b|buffer", "Megabytes to be used as buffer for sorting and plotting", v => startupData.buffmegabytes = int.Parse(v)
+                    "b|buffer", "Megabytes to be used as buffer for sorting and plotting", v => startupData.buffmegabytes = uint.Parse(v)
                 },
                 {
-                    "p|progress", "Display progress percentage during plotting", v => startupData.show_progress = int.Parse(v)
+                    "p|progress", "Display progress percentage during plotting", v => startupData.show_progress = v != null
                 }
             };
 
             var extra = p.Parse(args);
+            
+            DiskPlotter plotter = new DiskPlotter();
+            plotter.CreatePlotDisk(
+                startupData.tempdir,
+                startupData.tempdir2,
+                startupData.finaldir,
+                startupData.filename,
+                startupData.k,
+                Convert.FromHexString(startupData.memo),
+                Convert.FromHexString(startupData.id),
+                startupData.buffmegabytes,
+                startupData.num_buckets,
+                startupData.num_stripes,
+                startupData.num_threads,
+                false,
+               startupData.show_progress);
+
         }
     }
 }
