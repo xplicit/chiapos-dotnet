@@ -8,6 +8,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3rdparty", "3rdparty", "{97
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FiniteStateEntropy", "3rdparty\fse\src\FiniteStateEntropy\FiniteStateEntropy.csproj", "{28AD15C3-2D81-4716-96FC-36C4F1046BD4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blake3", "3rdparty\blake3\src\Blake3\Blake3.csproj", "{721CE655-CE03-48AF-8A84-5267AFDBD4A4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,8 +28,13 @@ Global
 		{28AD15C3-2D81-4716-96FC-36C4F1046BD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{28AD15C3-2D81-4716-96FC-36C4F1046BD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{28AD15C3-2D81-4716-96FC-36C4F1046BD4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{721CE655-CE03-48AF-8A84-5267AFDBD4A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{721CE655-CE03-48AF-8A84-5267AFDBD4A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{721CE655-CE03-48AF-8A84-5267AFDBD4A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{721CE655-CE03-48AF-8A84-5267AFDBD4A4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{28AD15C3-2D81-4716-96FC-36C4F1046BD4} = {97358EFC-80FB-4FB2-9DE6-4A2BA8112205}
+		{721CE655-CE03-48AF-8A84-5267AFDBD4A4} = {97358EFC-80FB-4FB2-9DE6-4A2BA8112205}
 	EndGlobalSection
 EndGlobal

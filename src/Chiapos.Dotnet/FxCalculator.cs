@@ -71,7 +71,7 @@ namespace Chiapos.Dotnet
             Bits input;
             byte[] input_bytes = new byte[64];
             byte[] hash_bytes = new byte[32];
-            blake3_hasher hasher = new();
+            using var hasher = Blake3.Hasher.New();
             ulong f;
             Bits c = null;
 
@@ -87,9 +87,11 @@ namespace Chiapos.Dotnet
 
             input.ToBytes(input_bytes);
 
-            blake3_hasher_init(hasher);
-            blake3_hasher_update(hasher, input_bytes, Util.Cdiv(input.Length, 8));
-            blake3_hasher_finalize(hasher, hash_bytes, hash_bytes.Length * sizeof(byte));
+            //blake3_hasher_init(hasher);
+            //blake3_hasher_update(hasher, input_bytes, Util.Cdiv(input.Length, 8));
+            hasher.Update(new ReadOnlySpan<byte>(input_bytes, 0, Util.Cdiv(input.Length, 8)));
+            //blake3_hasher_finalize(hasher, hash_bytes, hash_bytes.Length * sizeof(byte));
+            hasher.Finalize(hash_bytes);
 
             f = Util.EightBytesToInt(hash_bytes) >> (64 - (k_ + Constants.kExtraBits));
 
