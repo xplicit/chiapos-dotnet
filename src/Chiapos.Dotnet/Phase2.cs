@@ -13,7 +13,7 @@ namespace Chiapos.Dotnet
 // The purpose of backpropagate is to eliminate any dead entries that don't contribute
 // to final values in f7, to minimize disk usage. A sort on disk is applied to each table,
 // so that they are sorted by position.
-        Phase2Results RunPhase2(
+        public Phase2Results RunPhase2(
             List<FileDisk> tmp_1_disks,
             List<ulong> table_sizes,
             byte k,

@@ -18,7 +18,7 @@ namespace Chiapos.Dotnet
 // proofs of space in it. First, F1 is computed, which is special since it uses
 // ChaCha8, and each encryption provides multiple output values. Then, the rest of the
 // f functions are computed, and a sort on disk happens for each table.
-        List<ulong> RunPhase1(
+        public List<ulong> RunPhase1(
             List<FileDisk> tmp_1_disks,
             byte k,
             byte[] id,

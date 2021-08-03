@@ -136,7 +136,24 @@ namespace Chiapos.Dotnet
 
             return 0;
         }
+        
+        public static uint RoundPow2(uint a)
+        {
+            uint result = 1;
+            while ((a = (a >> 1)) > 0) result = result << 1;
+            return result;
 
-
+            /*
+            // https://stackoverflow.com/questions/54611562/truncate-float-to-nearest-power-of-2-in-c-performance
+            int exp;
+            double frac = frexp(a, &exp);
+            if (frac > 0.0)
+                frac = 0.5;
+            else if (frac < 0.0)
+                frac = -0.5;
+            double b = ldexp(frac, exp);
+            return b;
+            */
+        }
     }
 }

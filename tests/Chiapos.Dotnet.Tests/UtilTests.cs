@@ -134,5 +134,18 @@ namespace Chiapos.Dotnet.Tests
             Assert.That(Util.SliceInt128FromBytes(bytes3, 0, 120) == int3 >> 8);
             Assert.That(Util.SliceInt128FromBytes(bytes3, 3, 127) == (int3 << 2 | 3));
         }
+
+        [Test]
+        public void RoundPow2_Values()
+        {
+            Assert.That(Util.RoundPow2(1), Is.EqualTo(1));
+            Assert.That(Util.RoundPow2(2), Is.EqualTo(2));
+            Assert.That(Util.RoundPow2(3), Is.EqualTo(2));
+            Assert.That(Util.RoundPow2(32), Is.EqualTo(32));
+            Assert.That(Util.RoundPow2(60), Is.EqualTo(32));
+            Assert.That(Util.RoundPow2(1023), Is.EqualTo(512));
+            Assert.That(Util.RoundPow2(1024), Is.EqualTo(1024));
+            Assert.That(Util.RoundPow2(1025), Is.EqualTo(1024));
+        }
     }
 }
