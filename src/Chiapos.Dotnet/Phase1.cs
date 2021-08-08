@@ -31,7 +31,7 @@ namespace Chiapos.Dotnet
             int num_threads,
             PhaseFlags flags)
         {
-            Console.WriteLine("Computing table 1");
+            Console.WriteLine($"{Environment.NewLine}Computing table 1");
             globals.stripe_size = stripe_size;
             globals.num_threads = num_threads;
             PerformanceTimer f1_start_time = new();
@@ -157,6 +157,7 @@ namespace Chiapos.Dotnet
 
                     var thread = new Thread(() => phase1_thread(td[i]));
                     threads.Add(thread);
+                    thread.Start();
                 }
 
                 mutex[num_threads - 1].Set();
