@@ -1,7 +1,52 @@
+using NUnit.Framework;
+
 namespace Chiapos.Dotnet.Tests
 {
+    [TestFixture]
     public class FxCalculatorTests
     {
+        [Test]
+        public void F1Calculator_GeneratesBits()
+        {
+            byte test_k = 35;
+            var test_key = new byte[] {0, 2, 3, 4,  5, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+                1, 2, 3, 41, 5, 6, 7, 8, 9, 10, 11, 12, 13, 11, 15, 16};
+            F1Calculator f1 = new F1Calculator(test_k, test_key);
+
+            Bits L = new Bits(525, test_k);
+            (Bits, Bits) result1 = f1.CalculateBucket(L);
+            Assert.That(result1.Item1.GetValue(), Is.EqualTo(948868477184));
+            
+            Bits L2 = new Bits(526, test_k);
+            (Bits, Bits) result2 = f1.CalculateBucket(L2);
+            Bits L3 = new Bits(625, test_k);
+            (Bits, Bits) result3 = f1.CalculateBucket(L3);
+
+            var results = new ulong[256];
+            f1.CalculateBuckets(L.GetValue(), 101, results);
+            Assert.That(result1.Item1.GetValue(), Is.EqualTo(results[0]));
+            Assert.That(result2.Item1.GetValue(), Is.EqualTo(results[1]));
+            Assert.That(result3.Item1.GetValue(), Is.EqualTo(results[100]));
+
+            uint max_batch = 1 << (int)Constants.kBatchSizes;
+            test_k = 32;
+            F1Calculator f1_2 = new F1Calculator(test_k, test_key);
+            L = new Bits(192837491, test_k);
+            result1 = f1_2.CalculateBucket(L);
+            L2 = new Bits(192837491 + 1, test_k);
+            result2 = f1_2.CalculateBucket(L2);
+            L3 = new Bits(192837491 + 2, test_k);
+            result3 = f1_2.CalculateBucket(L3);
+            Bits L4 = new Bits(192837491 + max_batch - 1, test_k);
+            (Bits, Bits) result4 = f1_2.CalculateBucket(L4);
+
+            f1_2.CalculateBuckets(L.GetValue(), max_batch, results);
+            Assert.That(result1.Item1.GetValue(), Is.EqualTo(results[0]));
+            Assert.That(result2.Item1.GetValue(), Is.EqualTo(results[1]));
+            Assert.That(result3.Item1.GetValue(), Is.EqualTo(results[2]));
+            Assert.That(result4.Item1.GetValue(), Is.EqualTo(results[max_batch - 1]));
+            
+        }
         /*
 TEST_CASE("F functions")
 {

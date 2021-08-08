@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using Dirichlet.Numerics;
 
 namespace Chiapos.Dotnet
@@ -75,15 +76,11 @@ namespace Chiapos.Dotnet
                 chacha8.GetKeystream(counter, 1, ciphertext_bytes1);
                 var ciphertext1 = new Bits(ciphertext_bytes1, block_size_bits);
 
-                output_bits = new Bits(ciphertext_bytes, block_size_bits * 2);
-                var output_length = ciphertext0.Length - bits_before_L + num_output_bits - bits_of_L;
-                output_bits = (Bits)output_bits.Slice((int)bits_before_L, (int)(bits_before_L + output_length));
-                //ciphertext0.Slice(bits_before_L) +
-                //          ciphertext1.Slice(0, num_output_bits - bits_of_L);
+                output_bits = ciphertext0.Slice((int)bits_before_L) +  ciphertext1.Slice(0, num_output_bits - bits_of_L);
             }
             else
             {
-                output_bits = (Bits)ciphertext0.Slice((int)bits_before_L, (int)(bits_before_L + num_output_bits));
+                output_bits = ciphertext0.Slice((int)bits_before_L, (int)(bits_before_L + num_output_bits));
             }
 
             // Adds the first few bits of L to the end of the output, production k + kExtraBits of
@@ -91,11 +88,11 @@ namespace Chiapos.Dotnet
             ulong extra = L.GetValue() & ((1 << Constants.kExtraBits) - 1);
             output_bits.AppendValue(extra, Constants.kExtraBits);
             
-            /*Bits extra_data = L.Slice(0, Constants.kExtraBits);
+            Bits extra_data = (Bits)L.Slice(0, Constants.kExtraBits);
             if (extra_data.Length < Constants.kExtraBits)
             {
                 extra_data.AppendValue(0, Constants.kExtraBits - extra_data.Length);
-            }*/
+            }
 
             return output_bits;
         }
@@ -117,7 +114,7 @@ namespace Chiapos.Dotnet
             uint start_bit = (uint) (first_x * k_ % Constants.kF1BlockSizeBits);
             byte x_shift = (byte) (k_ - Constants.kExtraBits);
 
-            //assert(n <= (1U << kBatchSizes));
+            Debug.Assert(n <= (1U << (int)Constants.kBatchSizes));
 
             chacha8.GetKeystream(start, num_blocks, buf_);
             for (ulong x = first_x; x < first_x + n; x++)
