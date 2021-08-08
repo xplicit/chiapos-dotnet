@@ -337,7 +337,6 @@ namespace Chiapos.Dotnet
                 File.Delete(p);
             }
 
-            bool bCopied = false;
             bool bRenamed = false;
             var copy = new PerformanceTimer();
             while (!bRenamed)
