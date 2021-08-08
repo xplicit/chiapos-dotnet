@@ -148,7 +148,7 @@ namespace Chiapos.Dotnet.Tests
         }
 
         [Test]
-        public void Slice_ShouldReturnBitArray()
+        public void Slice_FromStartToEnd()
         {
             var bits = new byte[] { 0b_00100101, 0b_01000010, 0b_01010000, 0b_01010101, 0b_01010101 };
 
@@ -166,6 +166,42 @@ namespace Chiapos.Dotnet.Tests
             actual = x.Slice(14);
             expected = new byte[] { 0b_01000001, 0b_01010101, 0b_01010101, 0b_00000001 };
             AssertBitsArray(actual, expected, 26);
+        }
+
+        [Test]
+        public void Slice_InsideInt()
+        {
+            var bits = new byte[] { 0b_00100101, 0b_01000010, 0b_01010000, 0b_01010101, 0b_01010101 };
+            Bits x = new Bits(bits, 40);
+
+            var actual = x.Slice(14, 14 + 9);
+            var expected = new byte[] { 0b_01000001, 0b_00000001 };
+            AssertBitsArray(actual, expected, 9);
+
+            x = new Bits(bits, 40);
+            actual = x.Slice(30, 30 + 9);
+            expected = new byte[] { 0b_01010101, 0b_00000001 };
+            AssertBitsArray(actual, expected, 9);
+            
+            x = new Bits(bits[..4], 31);
+            actual = x.Slice(14, 14 + 9);
+            expected = new byte[] { 0b_01000001, 0b_00000001 };
+            AssertBitsArray(actual, expected, 9);
+        }
+
+        [Test]
+        public void Slice_StartsFromIntZeroBit()
+        {
+            var bits = new byte[] { 0b_00100101, 0b_01000010, 0b_01010000, 0b_01010101, 0b_01010101 };
+            Bits x = new Bits(bits, 40);
+
+            var actual = x.Slice(32);
+            var expected = new byte[] { 0b_01010101 };
+            AssertBitsArray(actual, expected, 8);
+
+            actual = x.Slice(32, 35);
+            expected = new byte[] { 0b_00000101 };
+            AssertBitsArray(actual, expected, 3);
         }
 
         private void AssertBitsArray(Bits actual, byte[] expectedArray, int expectedLength)

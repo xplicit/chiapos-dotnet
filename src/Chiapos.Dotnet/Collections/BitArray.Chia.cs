@@ -25,7 +25,7 @@ namespace Chiapos.Dotnet.Collections
             Div32Rem(length, out int extraBits);
             if (extraBits > 0)
             {
-                m_array[^1] = (1 << extraBits) - 1;
+                m_array[^1] &= (1 << extraBits) - 1;
             }
         }
 
@@ -160,7 +160,7 @@ namespace Chiapos.Dotnet.Collections
                 Console.WriteLine($"Size of bits is: {m_length}");
                 throw new InvalidOperationException($"Number doesn't fit into a 64-bit type. {m_length}");
             }
-            return (ulong)m_array[0] + (ulong)m_array[1] << 32;
+            return (ulong)m_array[0] + ((ulong)m_array[1] << 32);
         }
 
         public BitArray AppendValue(UInt128 value, int length)
@@ -221,6 +221,7 @@ namespace Chiapos.Dotnet.Collections
             BitArray result = new BitArray(end - start);
             int resultArrayLength = GetInt32ArrayLengthFromBitLength(end - start);
             int srcIndex = Div32Rem(start, out int shiftCount);
+            int resultLastIndex = Div32Rem(end - start, out int resultShift);
 
             if (shiftCount == 0)
             {
@@ -230,11 +231,24 @@ namespace Chiapos.Dotnet.Collections
             {
                 int resultIndex = 0;
             
-                for (int i = srcIndex; i < srcIndex + resultArrayLength; i++)
+                for (int i = srcIndex; i < srcIndex + resultArrayLength - 1; i++)
                 {
                     uint right = (uint)m_array[i] >> (shiftCount);
                     int left = m_array[i + 1] << (BitsPerInt32 - shiftCount);
                     result.m_array[resultIndex++] = left | (int)right;
+                }
+
+                if (shiftCount + resultShift > BitsPerInt32)
+                {
+                    uint right = (uint)m_array[srcIndex + resultArrayLength - 1] >> (shiftCount);
+                    int left = m_array[srcIndex + resultArrayLength] << (BitsPerInt32 - shiftCount);
+                    result.m_array[resultIndex] = left | (int)right;
+                }
+                else
+                {
+                    uint mask = shiftCount + resultShift == BitsPerInt32 ? 0xFFFFFFFF : 0xFFFFFFFF;
+                    uint right = (uint)m_array[srcIndex + resultArrayLength - 1] >> (shiftCount);
+                    result.m_array[resultIndex] = (int)(right & mask);
                 }
             }
 
