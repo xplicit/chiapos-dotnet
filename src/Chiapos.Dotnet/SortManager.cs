@@ -64,7 +64,7 @@ namespace Chiapos.Dotnet
             buckets_ = new List<bucket_t>((int) num_buckets);
             for (int bucket_i = 0; bucket_i < num_buckets; bucket_i++)
             {
-                string bucket_filename = Path.Combine(tmp_dirname, $"{filename} .sort_bucket_{bucket_i:000}.tmp");
+                string bucket_filename = Path.Combine(tmp_dirname, $"{filename}.sort_bucket_{bucket_i:000}.tmp");
                 File.Delete(bucket_filename);
                 buckets_.Add(new bucket_t(new FileDisk(bucket_filename)));
             }
@@ -86,9 +86,8 @@ namespace Chiapos.Dotnet
             b.file.Write(b.write_pointer, entry.Slice(0, entry_size_));  //Can entry be other length that entry size?
             b.write_pointer += entry_size_;
         }
-
-
-        internal struct bucket_t
+        
+        internal class bucket_t
         {
             internal bucket_t(FileDisk f)
             {
@@ -180,7 +179,7 @@ namespace Chiapos.Dotnet
 
         void SortBucket()
         {
-            if (memory_start_ != null)
+            if (memory_start_ == null)
             {
                 // we allocate the memory to sort the bucket in lazily. It'se freed
                 // in FreeMemory() or the destructor
