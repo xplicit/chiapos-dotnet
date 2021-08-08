@@ -25,5 +25,9 @@ namespace Chiapos.Dotnet
         public new Bits AppendValue(UInt128 value, int length) => (Bits) base.AppendValue(value, length);
 
         public static Bits operator +(Bits a, Bits b) => new Bits((BitArray) a + (BitArray) b);
+
+        public new Bits Slice(int start, int end) => new Bits(base.Slice(start, end));
+        
+        public new Bits Slice(int start) => new Bits(base.Slice(start, base.Length));
     }
 }

@@ -170,14 +170,15 @@ namespace Chiapos.Dotnet.Collections
             BitArray tmp = new BitArray(newsize);
             CopyTo(tmp.m_array, 0);
             
-            Div32Rem(m_length, out int extraBits);
+            int originalLength = Div32Rem(m_length, out int extraBits);
+            if (extraBits != 0) originalLength++;
 
             if (extraBits == 0)
             {
-                tmp.m_array[m_array.Length + 0] = value.I0;
-                if (length > 32) tmp.m_array[m_array.Length + 1] = value.I1;
-                if (length > 64) tmp.m_array[m_array.Length + 2] = value.I2;
-                if (length > 96) tmp.m_array[m_array.Length + 3] = value.I3;
+                tmp.m_array[originalLength + 0] = value.I0;
+                if (length > 32) tmp.m_array[originalLength + 1] = value.I1;
+                if (length > 64) tmp.m_array[originalLength + 2] = value.I2;
+                if (length > 96) tmp.m_array[originalLength + 3] = value.I3;
             }
             else
             {
@@ -196,17 +197,17 @@ namespace Chiapos.Dotnet.Collections
                 }
                 
                 //first int
-                tmp.m_array[m_array.Length - 1] |= (value.I0 & maskI0) << extraBits;
-                if (length > freeBits) tmp.m_array[m_array.Length] = value.I0 >> freeBits;
-                if (length > 32) tmp.m_array[m_array.Length] |= (value.I1 & maskI1) << extraBits;
+                tmp.m_array[originalLength - 1] |= (value.I0 & maskI0) << extraBits;
+                if (length > freeBits) tmp.m_array[originalLength] = value.I0 >> freeBits;
+                if (length > 32) tmp.m_array[originalLength] |= (value.I1 & maskI1) << extraBits;
                 
-                if (length - 32 > freeBits) tmp.m_array[m_array.Length + 1] = value.I1 >> freeBits;
-                if (length > 64) tmp.m_array[m_array.Length + 1] |= (value.I2 & maskI2) << extraBits;
+                if (length - 32 > freeBits) tmp.m_array[originalLength + 1] = value.I1 >> freeBits;
+                if (length > 64) tmp.m_array[originalLength + 1] |= (value.I2 & maskI2) << extraBits;
                 
-                if (length - 64 > freeBits) tmp.m_array[m_array.Length + 2] = value.I2 >> freeBits;
-                if (length > 96) tmp.m_array[m_array.Length + 2] |= (value.I3 & maskI3) << extraBits;
+                if (length - 64 > freeBits) tmp.m_array[originalLength + 2] = value.I2 >> freeBits;
+                if (length > 96) tmp.m_array[originalLength + 2] |= (value.I3 & maskI3) << extraBits;
                 
-                if (length - 96 > freeBits) tmp.m_array[m_array.Length + 3] = value.I3 >> freeBits;
+                if (length - 96 > freeBits) tmp.m_array[originalLength + 3] = value.I3 >> freeBits;
             }
 
             m_array = tmp.m_array;
@@ -217,11 +218,27 @@ namespace Chiapos.Dotnet.Collections
 
         public BitArray Slice(int start, int end)
         {
-            m_length = end;
-            LeftShift(start);
-            m_length = end - start;
+            BitArray result = new BitArray(end - start);
+            int resultArrayLength = GetInt32ArrayLengthFromBitLength(end - start);
+            int srcIndex = Div32Rem(start, out int shiftCount);
 
-            return this;
+            if (shiftCount == 0)
+            {
+                Array.Copy(m_array, srcIndex, result.m_array, 0, resultArrayLength);
+            }
+            else
+            {
+                int resultIndex = 0;
+            
+                for (int i = srcIndex; i < srcIndex + resultArrayLength; i++)
+                {
+                    uint right = (uint)m_array[i] >> (shiftCount);
+                    int left = m_array[i + 1] << (BitsPerInt32 - shiftCount);
+                    result.m_array[resultIndex++] = left | (int)right;
+                }
+            }
+
+            return result;
         }
 
         public void ToBytes(byte[] array) => CopyTo(array, 0);

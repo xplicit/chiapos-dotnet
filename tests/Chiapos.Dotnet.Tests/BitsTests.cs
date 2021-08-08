@@ -147,11 +147,32 @@ namespace Chiapos.Dotnet.Tests
             AssertBitsArray(c, expected, 64 + 32);
         }
 
+        [Test]
+        public void Slice_ShouldReturnBitArray()
+        {
+            var bits = new byte[] { 0b_00100101, 0b_01000010, 0b_01010000, 0b_01010101, 0b_01010101 };
+
+            Bits x = new Bits(bits, 40);
+
+            var actual = x.Slice(16);
+            var expected = new byte[] { 0b_01010000, 0b_01010101, 0b_01010101 };
+            AssertBitsArray(actual, expected, 24);
+
+            actual = x.Slice(24);
+            expected = new byte[] { 0b_01010101, 0b_01010101 };
+            AssertBitsArray(actual, expected, 16);
+
+            
+            actual = x.Slice(14);
+            expected = new byte[] { 0b_01000001, 0b_01010101, 0b_01010101, 0b_00000001 };
+            AssertBitsArray(actual, expected, 26);
+        }
+
         private void AssertBitsArray(Bits actual, byte[] expectedArray, int expectedLength)
         {
             Assert.That(actual.Length, Is.EqualTo(expectedLength));
 
-            var actualArray = new byte[expectedLength / sizeof(byte) + 1];
+            var actualArray = new byte[Util.Cdiv(expectedLength, 8)];
             actual.ToBytes(actualArray);
             
             for (int i = 0; i < expectedArray.Length; i++)
