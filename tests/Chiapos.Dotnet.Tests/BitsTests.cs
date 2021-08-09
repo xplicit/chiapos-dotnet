@@ -92,6 +92,16 @@ namespace Chiapos.Dotnet.Tests
 }
 */
         [Test]
+        public void GetValue_ShouldReturnConstructorValue()
+        {
+            ulong expected = 0x6322_3df1_f7ec_dcbe;
+            Bits x = new Bits(new UInt128(expected),64);
+            var actual = x.GetValue();
+            
+            Assert.That(actual, Is.EqualTo(expected));
+        }
+        
+        [Test]
         public void OperatorPlus_BothArraysHaveNoRemainingBits()
         {
             var bitsA = new byte[] {0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55};

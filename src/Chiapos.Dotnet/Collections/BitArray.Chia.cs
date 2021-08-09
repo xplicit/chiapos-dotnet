@@ -160,7 +160,8 @@ namespace Chiapos.Dotnet.Collections
                 Console.WriteLine($"Size of bits is: {m_length}");
                 throw new InvalidOperationException($"Number doesn't fit into a 64-bit type. {m_length}");
             }
-            return (ulong)m_array[0] + ((ulong)m_array[1] << 32);
+            
+            return (uint)m_array[0] + ((ulong)(uint)m_array[1] << 32);
         }
 
         public BitArray AppendValue(UInt128 value, int length)
