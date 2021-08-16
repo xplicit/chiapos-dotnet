@@ -59,7 +59,8 @@ namespace Chiapos.Dotnet
                 var threads = new List<Thread>();
                 for (int i = 0; i < num_threads; i++)
                 {
-                    var thread = new Thread(() => F1thread(i, k, id, sort_manager_mutex));
+                    var index = i;
+                    var thread = new Thread(() => F1thread(index, k, id, sort_manager_mutex));
                     threads.Add(thread);
                     thread.Start();
                 }
