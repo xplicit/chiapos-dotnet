@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Chiapos.Dotnet.Collections;
 using Chiapos.Dotnet.Disks;
 
 namespace Chiapos.Dotnet
@@ -70,9 +69,9 @@ namespace Chiapos.Dotnet
             }
         }
 
-        public void AddToCache(BitArray entry)
+        public void AddToCache(Bits entry)
         {
-            entry.CopyTo(entry_buf_, 0);
+            entry.ToBytes(entry_buf_, 0);
             AddToCache(entry_buf_);
         }
 

@@ -85,16 +85,13 @@ namespace Chiapos.Dotnet
 
             // Adds the first few bits of L to the end of the output, production k + kExtraBits of
             // output
-            ulong extra = L.GetValue() & ((1 << Constants.kExtraBits) - 1);
-            output_bits.AppendValue(extra, Constants.kExtraBits);
-            
-            Bits extra_data = (Bits)L.Slice(0, Constants.kExtraBits);
+            Bits extra_data = L.Slice(0, Constants.kExtraBits);
             if (extra_data.Length < Constants.kExtraBits)
             {
                 extra_data.AppendValue(0, Constants.kExtraBits - extra_data.Length);
             }
 
-            return output_bits;
+            return output_bits + extra_data;
         }
 
         // Returns an evaluation of F1(L), and the metadata (L) that must be stored to evaluate F2.

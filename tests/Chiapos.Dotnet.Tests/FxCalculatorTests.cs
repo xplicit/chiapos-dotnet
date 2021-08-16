@@ -15,12 +15,15 @@ namespace Chiapos.Dotnet.Tests
 
             Bits L = new Bits(525, test_k);
             (Bits, Bits) result1 = f1.CalculateBucket(L);
-            Assert.That(result1.Item1.GetValue(), Is.EqualTo(948868477184));
+            Assert.That(result1.Item1.GetValue(), Is.EqualTo(0xdcecf7f100));
             
             Bits L2 = new Bits(526, test_k);
             (Bits, Bits) result2 = f1.CalculateBucket(L2);
+            Assert.That(result2.Item1.GetValue(), Is.EqualTo(0x1e9131a8340));
+            
             Bits L3 = new Bits(625, test_k);
             (Bits, Bits) result3 = f1.CalculateBucket(L3);
+            Assert.That(result3.Item1.GetValue(), Is.EqualTo(0x152d2a7cc40));
 
             var results = new ulong[256];
             f1.CalculateBuckets(L.GetValue(), 101, results);
@@ -50,45 +53,6 @@ namespace Chiapos.Dotnet.Tests
         /*
 TEST_CASE("F functions")
 {
-    SECTION("F1")
-    {
-        uint8_t test_k = 35;
-        uint8_t test_key[] = {0, 2, 3, 4,  5, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
-                              1, 2, 3, 41, 5, 6, 7, 8, 9, 10, 11, 12, 13, 11, 15, 16};
-        F1Calculator f1(test_k, test_key);
-
-        Bits L = Bits(525, test_k);
-        pair<Bits, Bits> result1 = f1.CalculateBucket(L);
-        Bits L2 = Bits(526, test_k);
-        pair<Bits, Bits> result2 = f1.CalculateBucket(L2);
-        Bits L3 = Bits(625, test_k);
-        pair<Bits, Bits> result3 = f1.CalculateBucket(L3);
-
-        uint64_t results[256];
-        f1.CalculateBuckets(L.GetValue(), 101, results);
-        REQUIRE(result1.first.GetValue() == results[0]);
-        REQUIRE(result2.first.GetValue() == results[1]);
-        REQUIRE(result3.first.GetValue() == results[100]);
-
-        uint32_t max_batch = 1 << kBatchSizes;
-        test_k = 32;
-        F1Calculator f1_2(test_k, test_key);
-        L = Bits(192837491, test_k);
-        result1 = f1_2.CalculateBucket(L);
-        L2 = Bits(192837491 + 1, test_k);
-        result2 = f1_2.CalculateBucket(L2);
-        L3 = Bits(192837491 + 2, test_k);
-        result3 = f1_2.CalculateBucket(L3);
-        Bits L4 = Bits(192837491 + max_batch - 1, test_k);
-        pair<Bits, Bits> result4 = f1_2.CalculateBucket(L4);
-
-        f1_2.CalculateBuckets(L.GetValue(), max_batch, results);
-        REQUIRE(result1.first.GetValue() == results[0]);
-        REQUIRE(result2.first.GetValue() == results[1]);
-        REQUIRE(result3.first.GetValue() == results[2]);
-        REQUIRE(result4.first.GetValue() == results[max_batch - 1]);
-    }
-
     SECTION("F2")
     {
         uint8_t test_key_2[] = {20,  2,  5,  4,   51, 52,  23,  84,  91, 10, 111,

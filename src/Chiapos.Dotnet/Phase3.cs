@@ -46,7 +46,7 @@ void WriteParkToFile(
     }
     int stubs_size = EntrySizes.CalculateStubsSize(k);
     int stubs_valid_size = Util.Cdiv(park_stubs_bits.Length, 8);
-    park_stubs_bits.CopyTo(park_buffer, park_buffer.Length - index.Length);
+    park_stubs_bits.ToBytes(park_buffer, park_buffer.Length - index.Length);
     index.Slice((int)stubs_valid_size, stubs_size - stubs_valid_size).Fill(0);
     index = index.Slice(stubs_size);
 

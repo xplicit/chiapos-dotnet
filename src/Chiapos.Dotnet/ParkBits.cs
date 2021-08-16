@@ -1,10 +1,9 @@
 using System;
-using Chiapos.Dotnet.Collections;
 using Dirichlet.Numerics;
 
 namespace Chiapos.Dotnet
 {
-    public class ParkBits : BitArray
+    public class ParkBits : Bits
     {
         public ParkBits(UInt128 value, int length) : base(value, length)
         {

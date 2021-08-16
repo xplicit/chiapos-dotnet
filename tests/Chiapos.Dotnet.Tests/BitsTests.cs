@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Dirichlet.Numerics;
 using NUnit.Framework;
 
 namespace Chiapos.Dotnet.Tests
@@ -10,6 +11,105 @@ namespace Chiapos.Dotnet.Tests
         public void Slicing_and_Manipulation()
         {
             BitArray bits = new BitArray(1024);
+        }
+
+        [Test]
+        public void Slice_and_Manipulating()
+        {
+            
+            Bits g = new Bits(0b_0110011_11010111, 15);
+            var x = g.Slice(4, 9);
+            Assert.That(x.GetValue(), Is.EqualTo(0b_01111));
+            
+            x = g.Slice(9, 15);
+            Assert.That(x.GetValue(), Is.EqualTo(0b_010111));
+            x = g.Slice(0, 9);
+            Assert.That(x.GetValue(), Is.EqualTo(0b_011001111));
+            x = g.Slice(9, 10);
+            Assert.That(x.GetValue(), Is.EqualTo(0));
+            //TODO: add support for empty slices
+            //x = g.Slice(9, 9);
+
+            Bits g1 = new Bits(0x01020408_10204080, 64);
+            var x1 = g1.Slice(8, 56);
+            Assert.That(x1.GetValue(), Is.EqualTo(0x020408_102040));
+        }
+
+        [Test]
+        public void Slice_CanSlice128bitArray()
+        {
+            Bits g2 = new Bits((((UInt128)0x01020408_10204080) << 64) + (UInt128)0x11121418_11214181, 128);
+            var x2 = g2.Slice(8, 120);
+
+            var expected = new byte[] { 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x11, 0x12, 0x14, 0x18, 0x11, 0x21, 0x41 };
+            AssertBitsArray(x2, expected, 120 - 8);
+        }
+
+        [Test]
+        public void Slice_CanSliceArraysFitIn64Bit()
+        {
+            Bits g = new Bits(
+                new byte[]
+                {
+                    0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80,
+                    0x11, 0x12, 0x14, 0x18, 0x11, 0x21, 0x41, 0x81,
+                    0x82, 0x80
+                }, 128 + 12);
+            var x = g.Slice(32, 32 + 56);
+            var expected = new byte[] { 0x10, 0x20, 0x40, 0x80, 0x11, 0x12, 0x14 };
+            AssertBitsArray(x, expected, 56);
+
+            x = g.Slice(80, 80 + 56);
+            expected = new byte[] { 0x14, 0x18, 0x11, 0x21, 0x41, 0x81, 0x82 };
+            AssertBitsArray(x, expected, 56);
+            
+            x = g.Slice(128, 128 + 8);
+            expected = new byte[] { 0x82 };
+            AssertBitsArray(x, expected, 8);
+            
+            x = g.Slice(132, 132 + 4);
+            expected = new byte[] { 0x20 };
+            AssertBitsArray(x, expected, 4);
+        }
+
+        [Test]
+        public void Slice_CanSliceArraysFitIn128Bit()
+        {
+            Bits g3 = new Bits(
+                new byte[]
+                {
+                    0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80,
+                    0x11, 0x12, 0x14, 0x18, 0x11, 0x21, 0x41, 0x81,
+                    0x82, 0x80
+                }, 128 + 12);
+            var x3 = g3.Slice(16, 128 + 8);
+            var expected = new byte[]
+            {
+                0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x11, 0x12,
+                0x14, 0x18, 0x11, 0x21, 0x41, 0x81, 0x82
+            };
+            AssertBitsArray(x3, expected, 128 + 8 - 16);
+        }
+        
+        [Test]
+        public void Slice_CanSliceArraysNotFitIn64bit()
+        {
+            //verified in chiapos
+            Bits g3 = new Bits(
+                new byte[]
+                {
+                    0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80,
+                    0x11, 0x12, 0x14, 0x18, 0x11, 0x21, 0x41, 0x81,
+                    0x82, 0x80
+                }, 128 + 12);
+            var x3 = g3.Slice(4, 128 + 8);
+            var expected = new byte[]
+            {
+                0x10, 0x20, 0x40, 0x81, 0x02, 0x04, 0x08, 0x01,
+                0x11, 0x21, 0x41, 0x81, 0x12, 0x14, 0x18, 0x18,
+                0x20
+            };
+            AssertBitsArray(x3, expected, 128 + 4);
         }
         /*
             SECTION("Slicing and manipulating")
@@ -92,13 +192,131 @@ namespace Chiapos.Dotnet.Tests
 }
 */
         [Test]
+        public void Uint128Constructor_CanConvertToBytes()
+        {
+            //Bits g = new Bits((((UInt128)0x01020408_10204080) << 64) + (UInt128)0x11121418_11214181, 128);
+
+            //var expected = new byte[] { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x11, 0x12, 0x14, 0x18, 0x11, 0x21, 0x41, 0x81 };
+            //AssertBitsArray(g, expected, 128);
+            
+            Bits g = new Bits((((UInt128)0x01020408_10204080) << 64) + (UInt128)0x11121418_11214181, 120);
+
+            var expected = new byte[] { 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x11, 0x12, 0x14, 0x18, 0x11, 0x21, 0x41, 0x81 };
+            //AssertBitsArray(g, expected, 120);
+
+            g.AppendValue((UInt128)0x22232425_26272829, 64);
+            
+            expected = new byte[]
+            {
+                0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x11, 0x12, 0x14, 0x18, 0x11, 0x21, 0x41, 0x81,
+                0X22, 0X23, 0X24, 0X25, 0X26, 0X27, 0X28, 0X29
+            };
+            AssertBitsArray(g, expected, 120 + 64);
+        }
+        
+        [Test]
+        public void Uint128Constructor_ThrowWhenNegativeLength()
+        {
+            Assert.Throws(typeof(ArgumentOutOfRangeException),
+                () => new Bits((((UInt128)0x01020408_10204080) << 64) + (UInt128)0x11121418_11214181, -1));
+        }
+        
+        [Test]
+        public void ExptyConstructor_ThrowWhenNegativeLength()
+        {
+            Assert.Throws(typeof(ArgumentOutOfRangeException),
+                () => new Bits(-1));
+        }
+
+        [Test]
+        public void CanAppendValue()
+        {
+            Bits g;
+            byte[] expected; 
+            
+            //verified in chiapos
+            g = new Bits((((UInt128)0x01020408_10204080) << 64) + (UInt128)0x11121418_11214181, 120);
+            g.AppendValue((UInt128)0x22232425_26272829, 64);
+            
+            expected = new byte[]
+            {
+                0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x11, 0x12, 0x14, 0x18, 0x11, 0x21, 0x41, 0x81,
+                0X22, 0X23, 0X24, 0X25, 0X26, 0X27, 0X28, 0X29
+            };
+            AssertBitsArray(g, expected, 120 + 64);
+            
+            //verified in chiapos
+            g = new Bits((((UInt128)0x01020408_10204080) << 64) + (UInt128)0x11121418_11214181, 120);
+            g.AppendValue((UInt128)0x22232425_2627280F, 8);
+            
+            expected = new byte[]
+            {
+                0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x11, 0x12, 0x14, 0x18, 0x11, 0x21, 0x41, 0x81, 0x0F
+            };
+            AssertBitsArray(g, expected, 120 + 8);
+            
+            //Verified in chiapos
+            g = new Bits((((UInt128)0x01020408_10204080) << 64) + (UInt128)0x11121418_11214181, 120);
+            g.AppendValue((UInt128)0x22232425_2627282F, 4);
+            
+            expected = new byte[]
+            {
+                0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x11, 0x12, 0x14, 0x18, 0x11, 0x21, 0x41, 0x81, 0xF0
+            };
+            AssertBitsArray(g, expected, 120 + 4);
+            
+            //verified in chiapos
+            g = new Bits((((UInt128)0x01020408_10204080) << 64) + (UInt128)0x11121418_11214181, 120);
+            g.AppendValue(((UInt128)0x01 << 64) + (UInt128)0x22232425_26272829, 68);
+            
+            expected = new byte[]
+            {
+                0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x11, 0x12, 0x14, 0x18, 0x11, 0x21, 0x41, 0x81,
+                0x12, 0x22, 0x32, 0x42, 0x52, 0x62, 0x72, 0x82, 0x90
+            };
+            AssertBitsArray(g, expected, 120 + 68);
+            
+            g = new Bits((((UInt128)0x01020408_10204080) << 64) + (UInt128)0x11121418_11214181, 120);
+            g.AppendValue(((UInt128)0x717273 << 64) + (UInt128)0x22232425_26272829, 88);
+            
+            expected = new byte[]
+            {
+                0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x11, 0x12, 0x14, 0x18, 0x11, 0x21, 0x41, 0x81,
+                0x71, 0x72, 0x73, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29
+            };
+            AssertBitsArray(g, expected, 120 + 88);
+            
+            //Verified in chiapos
+            g = new Bits((((UInt128)0x01020408_10204080) << 64) + (UInt128)0x11121418_11214181, 128);
+            g.AppendValue(((UInt128)0x22232425_26272829 << 64) + (UInt128)0x51525354_55565758, 72);
+            
+            expected = new byte[]
+            {
+                0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x11, 0x12, 0x14, 0x18, 0x11, 0x21, 0x41, 0x81,
+                0x29, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58
+            };
+            AssertBitsArray(g, expected, 128 + 72);
+        }
+        
+        [Test]
         public void GetValue_ShouldReturnConstructorValue()
         {
             ulong expected = 0x6322_3df1_f7ec_dcbe;
             Bits x = new Bits(new UInt128(expected),64);
             var actual = x.GetValue();
+
+            var v = 0x01020408;
+            x = new Bits(new UInt128(v), 32);
+            actual = x.GetValue();
             
-            Assert.That(actual, Is.EqualTo(expected));
+            Assert.That(actual, Is.EqualTo(0x01020408));
+        }
+        
+        [Test]
+        public void GetValue_FromLargeArray_ShouldThrow()
+        {
+            Bits x = new Bits((new UInt128(0x6322_3df1_f7ec_dcbe) << 64) + new UInt128(0xffff),68);
+            Assert.Throws(typeof(InvalidOperationException), () => x.GetValue());
         }
         
         [Test]
@@ -132,6 +350,7 @@ namespace Chiapos.Dotnet.Tests
         [Test]
         public void OperatorPlus_FirstArrayHaveFiveRemainingBits()
         {
+            //verified in chiapos
             var bitsA = new byte[] {0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55};
             var bitsB = new byte[] {0xAF, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
             
@@ -139,7 +358,7 @@ namespace Chiapos.Dotnet.Tests
             Bits b = new Bits(bitsB, 64);
 
             var c = a + b;
-            var expected = new byte[] {0x55, 0x55, 0x55, 0b_0101_0101, 0b_111_10101, 0b_010_10101, 0x55, 0x55, 0x55, 0x55, 0x55, 0b_0101_0101, 0b_000_10101};
+            var expected = new byte[] {0x55, 0x55, 0x55, 0x55, 0x55, 0x7D, 0x55, 0x55,  0x55, 0x55, 0x55, 0x55, 0x50};
             AssertBitsArray(c, expected, 64 + 32 + 5);
         }
 
@@ -147,14 +366,24 @@ namespace Chiapos.Dotnet.Tests
         public void OperatorPlus_SumOfArraysHaveNoRemainingBits()
         {
             var bitsA = new byte[] {0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55};
-            var bitsB = new byte[] {0xAF, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
+            var bitsB = new byte[] {0x07, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
 
             Bits a = new Bits(new ReadOnlySpan<byte>(bitsA, 0, 5), 32 + 5);
             Bits b = new Bits(bitsB,64 - 5);
             
             var c = a + b;
-            var expected = new byte[] {0x55, 0x55, 0x55, 0b_0101_0101, 0b_111_10101, 0b_010_10101, 0x55, 0x55, 0x55, 0x55, 0x55, 0b_0101_0101};
+            var expected = new byte[] {0x55, 0x55, 0x55, 0x55, 0x57, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
             AssertBitsArray(c, expected, 64 + 32);
+        }
+
+        [Test]
+        public void OperatorPlus_CanSumBitsFromF1Calculator()
+        {
+            var a = new Bits(0x373b3dfc4, 35);
+            var b = new Bits(0, 6);
+            
+            var actual = a + b;
+            Assert.That(actual.GetValue(), Is.EqualTo(0xdcecf7f100));
         }
 
         [Test]
@@ -164,6 +393,7 @@ namespace Chiapos.Dotnet.Tests
 
             Bits x = new Bits(bits, 40);
 
+            
             var actual = x.Slice(16);
             var expected = new byte[] { 0b_01010000, 0b_01010101, 0b_01010101 };
             AssertBitsArray(actual, expected, 24);
@@ -171,10 +401,10 @@ namespace Chiapos.Dotnet.Tests
             actual = x.Slice(24);
             expected = new byte[] { 0b_01010101, 0b_01010101 };
             AssertBitsArray(actual, expected, 16);
-
             
+            //verified in chiapos
             actual = x.Slice(14);
-            expected = new byte[] { 0b_01000001, 0b_01010101, 0b_01010101, 0b_00000001 };
+            expected = new byte[] { 0b_10010100, 0b_00010101, 0b_01010101, 0b_01000000 };
             AssertBitsArray(actual, expected, 26);
         }
 
@@ -183,20 +413,28 @@ namespace Chiapos.Dotnet.Tests
         {
             var bits = new byte[] { 0b_00100101, 0b_01000010, 0b_01010000, 0b_01010101, 0b_01010101 };
             Bits x = new Bits(bits, 40);
+           // AssertBitsArray(x, bits, 40);
 
+           //verified in chiapos
             var actual = x.Slice(14, 14 + 9);
-            var expected = new byte[] { 0b_01000001, 0b_00000001 };
+            var expected = new byte[] { 0b_10_010100, 0b_0_0000000}; 
             AssertBitsArray(actual, expected, 9);
 
             x = new Bits(bits, 40);
             actual = x.Slice(30, 30 + 9);
-            expected = new byte[] { 0b_01010101, 0b_00000001 };
+            expected = new byte[] { 0b_01_010101, 0b_0_0000000 };
             AssertBitsArray(actual, expected, 9);
             
-            x = new Bits(bits[..4], 31);
+            //verified in chiapos
+            x = new Bits(new byte[] {0x84, 0xA0, 0xAA, 0xAA}, 31);
             actual = x.Slice(14, 14 + 9);
-            expected = new byte[] { 0b_01000001, 0b_00000001 };
+            expected = new byte[] { 0b_0_0101010, 0b_1_0000000};
             AssertBitsArray(actual, expected, 9);
+
+            //verified in chiapos
+            x = new Bits(525, 35);
+            actual = x.Slice(0, 6);
+            Assert.That(actual.GetValue(), Is.EqualTo(0));
         }
 
         [Test]
@@ -209,21 +447,42 @@ namespace Chiapos.Dotnet.Tests
             var expected = new byte[] { 0b_01010101 };
             AssertBitsArray(actual, expected, 8);
 
+            //verified in chiapos
             actual = x.Slice(32, 35);
-            expected = new byte[] { 0b_00000101 };
+            expected = new byte[] { 0b_01000000 };
             AssertBitsArray(actual, expected, 3);
         }
 
+        [Test]
+        public void Slice_CanSliceLargeBits()
+        {
+            var bits = new byte[]
+            {
+                0x4f, 0x96, 0xa0, 0x56, 0xad, 0x12, 0xe0, 0xeb,
+                0xc4, 0xbc, 0x0a, 0x9f, 0xa6, 0x8b, 0x9d, 0xa0,
+                0xb2, 0x8c, 0x4f, 0x70, 0x97, 0x86, 0x23, 0xb0,
+                0xc2, 0xd4, 0xf3, 0xe9, 0x0a, 0xc8, 0xc2, 0x0f,
+                0xbe, 0x6f, 0x0c, 0x55, 0x20, 0x0f, 0xa7, 0x14,
+                0xef, 0xa9, 0x26, 0xa5, 0xa9, 0x1f, 0x20, 0xa8,
+                0x25, 0x74, 0x4f, 0x60, 0xe1, 0x71, 0x3c, 0x80,
+                0xbe, 0xdc, 0xec, 0xf7, 0xf1, 0x3d, 0x22, 0x63
+            };
+            
+            Bits g = new Bits(bits, 512);
+            var x = g.Slice(455, 455 + 35);
+            Assert.That(x.GetValue(), Is.EqualTo(0x373b3dfc4));
+        }
+        
         private void AssertBitsArray(Bits actual, byte[] expectedArray, int expectedLength)
         {
-            Assert.That(actual.Length, Is.EqualTo(expectedLength));
+            Assert.That(actual.Length, Is.EqualTo(expectedLength), "Length differs");
 
             var actualArray = new byte[Util.Cdiv(expectedLength, 8)];
             actual.ToBytes(actualArray);
             
             for (int i = 0; i < expectedArray.Length; i++)
             {
-                Assert.That(actualArray[i], Is.EqualTo(expectedArray[i]), $"{i}: actual byte = {actualArray[i]:X}, expected byte = {expectedArray[i]:X}");
+                Assert.That(actualArray[i], Is.EqualTo(expectedArray[i]), $"index={i}: actual byte = {actualArray[i]:X}, expected byte = {expectedArray[i]:X}");
             }
         }
     }
