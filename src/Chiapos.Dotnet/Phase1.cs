@@ -54,6 +54,7 @@ namespace Chiapos.Dotnet
             var table_sizes = new List<ulong> {0, 0, 0, 0, 0, 0, 0, 0};
             object sort_manager_mutex = new();
 
+#if !SKIPF1
             {
                 // Start of parallel execution
                 var threads = new List<Thread>();
@@ -72,9 +73,10 @@ namespace Chiapos.Dotnet
                 // end of parallel execution
             }
 
-            ulong prevtableentries = 1UL << k;
-            f1_start_time.PrintElapsed("F1 complete, time:");
             globals.L_sort_manager.FlushCache();
+            f1_start_time.PrintElapsed("F1 complete, time:");
+#endif
+            ulong prevtableentries = 1UL << k;
             table_sizes[1] = x + 1;
 
             // Store positions to previous tables, in k bits.
@@ -142,6 +144,7 @@ namespace Chiapos.Dotnet
 
                 for (int i = 0; i < num_threads; i++)
                 {
+                    td[i] = new ThreadData();
                     td[i].index = i;
                     td[i].mine = mutex[i];
                     td[i].theirs = mutex[(num_threads + i - 1) % num_threads];
@@ -155,10 +158,16 @@ namespace Chiapos.Dotnet
                     td[i].pos_size = pos_size;
                     td[i].compressed_entry_size_bytes = compressed_entry_size_bytes;
                     td[i].ptmp_1_disks = tmp_1_disks;
+                    var threadData = td[i];
 
-                    var thread = new Thread(() => phase1_thread(td[i]));
+                    var thread = new Thread(() => phase1_thread(threadData));
+#if SKIPF1
+                    mutex[num_threads - 1].Set();
+                    phase1_thread(threadData);
+#else
                     threads.Add(thread);
                     thread.Start();
+#endif
                 }
 
                 mutex[num_threads - 1].Set();

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Chiapos.Dotnet
 {
@@ -13,8 +14,8 @@ namespace Chiapos.Dotnet
 
         byte k_;
         byte table_index_;
-        List<rmap_item> rmap = new List<rmap_item>(Constants.kBC);
-        List<ushort> rmap_clean;
+        private List<rmap_item> rmap = Enumerable.Range(0, Constants.kBC).Select(_ => new rmap_item()).ToList();
+        List<ushort> rmap_clean = new();
 
         private class rmap_item
         {
@@ -110,7 +111,7 @@ namespace Chiapos.Dotnet
                 c = new Bits(new ReadOnlySpan<byte>(hash_bytes, start_byte, end_byte - start_byte),
                     (end_byte - start_byte) * 8);
 
-                c = (Bits) c.Slice((k_ + Constants.kExtraBits) % 8, end_bit - start_byte * 8);
+                c = c.Slice((k_ + Constants.kExtraBits) % 8, end_bit - start_byte * 8);
             }
 
             return (new Bits(f, k_ + Constants.kExtraBits), c);

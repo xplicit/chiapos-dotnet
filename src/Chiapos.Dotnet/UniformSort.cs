@@ -1,5 +1,5 @@
 using System;
-using System.Buffers;
+using System.Diagnostics;
 using Chiapos.Dotnet.Disks;
 
 namespace Chiapos.Dotnet
@@ -93,7 +93,7 @@ namespace Chiapos.Dotnet
                 }
             }
 
-            //assert(entries_written == num_entries);
+            Debug.Assert((ulong)entries_written == num_entries);
         }
     }
 }

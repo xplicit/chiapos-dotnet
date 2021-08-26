@@ -64,8 +64,14 @@ namespace Chiapos.Dotnet
             for (int bucket_i = 0; bucket_i < num_buckets; bucket_i++)
             {
                 string bucket_filename = Path.Combine(tmp_dirname, $"{filename}.sort_bucket_{bucket_i:000}.tmp");
-                File.Delete(bucket_filename);
+#if !SKIPF1
+                File.Delete(bucket_filename); 
                 buckets_.Add(new bucket_t(new FileDisk(bucket_filename)));
+#else
+                var fileLength = File.Exists(bucket_filename) ? new FileInfo(bucket_filename).Length : 0;
+                buckets_.Add(new bucket_t(new FileDisk(bucket_filename)) {write_pointer = (ulong)fileLength});
+#endif
+                
             }
         }
 
