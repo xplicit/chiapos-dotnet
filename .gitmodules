@@ -4,3 +4,6 @@
 [submodule "3rdparty/blake3"]
 	path = 3rdparty/blake3
 	url = https://github.com/xplicit/Blake3.NET
+[submodule "3rdparty/blake3-lib"]
+	path = 3rdparty/blake3-lib
+	url = https://github.com/xplicit/BLAKE3
