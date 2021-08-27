@@ -7,7 +7,7 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <Platforms>x64;AnyCPU</Platforms>
         <RuntimeIdentifiers>win7-x64;linux-x64;osx-x64</RuntimeIdentifiers>
-        <Configurations>Debug;Release;DebugMac;ReleaseMac</Configurations>
+        <Configurations>Debug;Release;DebugMac;ReleaseMac;DebugLinux;ReleaseLinux</Configurations>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' Or '$(Configuration)|$(Platform)' == 'DebugMac|x64' ">
@@ -18,9 +18,18 @@
         <RuntimeIdentifier>osx-x64</RuntimeIdentifier>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'DebugLinux|x64' Or '$(Configuration)|$(Platform)' == 'ReleaseLinux|x64' ">
+        <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+    </PropertyGroup>
+
     <PropertyGroup Condition=" '$(RuntimeIdentifier)'=='osx-x64' ">
         <Blake3BinariesPath>..\..\lib\osx-x64</Blake3BinariesPath>
         <DefineConstants>MAC</DefineConstants>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(RuntimeIdentifier)'=='linux-x64' ">
+        <Blake3BinariesPath>..\..\lib\linux-x64</Blake3BinariesPath>
+        <DefineConstants>LINUX</DefineConstants>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(RuntimeIdentifier)'=='win7-x64' ">

@@ -18,6 +18,8 @@ Global
 		Release|x64 = Release|x64
 		DebugMac|x64 = DebugMac|x64
 		ReleaseMac|x64 = ReleaseMac|x64
+		DebugLinux|x64 = DebugLinux|x64
+		ReleaseLinux|x64 = ReleaseLinux|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{E51CFC93-DE4E-483D-9BC2-29D3F44DDE8F}.Debug|x64.ActiveCfg = Debug|x64
@@ -31,6 +33,10 @@ Global
 		{E51CFC93-DE4E-483D-9BC2-29D3F44DDE8F}.DebugMac|x64.Build.0 = DebugMac|x64
 		{E51CFC93-DE4E-483D-9BC2-29D3F44DDE8F}.ReleaseMac|x64.ActiveCfg = ReleaseMac|x64
 		{E51CFC93-DE4E-483D-9BC2-29D3F44DDE8F}.ReleaseMac|x64.Build.0 = ReleaseMac|x64
+		{E51CFC93-DE4E-483D-9BC2-29D3F44DDE8F}.DebugLinux|x64.ActiveCfg = DebugLinux|x64
+		{E51CFC93-DE4E-483D-9BC2-29D3F44DDE8F}.DebugLinux|x64.Build.0 = DebugLinux|x64
+		{E51CFC93-DE4E-483D-9BC2-29D3F44DDE8F}.ReleaseLinux|x64.ActiveCfg = ReleaseLinux|x64
+		{E51CFC93-DE4E-483D-9BC2-29D3F44DDE8F}.ReleaseLinux|x64.Build.0 = ReleaseLinux|x64
 		{C23C79D1-2E96-489D-8014-47877EA6FCC9}.Debug|x64.ActiveCfg = Debug|x64
 		{C23C79D1-2E96-489D-8014-47877EA6FCC9}.Debug|x64.Build.0 = Debug|x64
 		{C23C79D1-2E96-489D-8014-47877EA6FCC9}.Release|x64.ActiveCfg = Release|x64
@@ -42,6 +48,10 @@ Global
 		{C23C79D1-2E96-489D-8014-47877EA6FCC9}.DebugMac|x64.Build.0 = DebugMac|x64
 		{C23C79D1-2E96-489D-8014-47877EA6FCC9}.ReleaseMac|x64.ActiveCfg = ReleaseMac|x64
 		{C23C79D1-2E96-489D-8014-47877EA6FCC9}.ReleaseMac|x64.Build.0 = ReleaseMac|x64
+		{C23C79D1-2E96-489D-8014-47877EA6FCC9}.DebugLinux|x64.ActiveCfg = DebugLinux|x64
+		{C23C79D1-2E96-489D-8014-47877EA6FCC9}.DebugLinux|x64.Build.0 = DebugLinux|x64
+		{C23C79D1-2E96-489D-8014-47877EA6FCC9}.ReleaseLinux|x64.ActiveCfg = ReleaseLinux|x64
+		{C23C79D1-2E96-489D-8014-47877EA6FCC9}.ReleaseLinux|x64.Build.0 = ReleaseLinux|x64
 		{28AD15C3-2D81-4716-96FC-36C4F1046BD4}.Debug|x64.ActiveCfg = Debug|x64
 		{28AD15C3-2D81-4716-96FC-36C4F1046BD4}.Debug|x64.Build.0 = Debug|x64
 		{28AD15C3-2D81-4716-96FC-36C4F1046BD4}.Release|x64.ActiveCfg = Release|x64
@@ -53,6 +63,10 @@ Global
 		{28AD15C3-2D81-4716-96FC-36C4F1046BD4}.DebugMac|x64.Build.0 = Debug|x64
 		{28AD15C3-2D81-4716-96FC-36C4F1046BD4}.ReleaseMac|x64.ActiveCfg = Release|x64
 		{28AD15C3-2D81-4716-96FC-36C4F1046BD4}.ReleaseMac|x64.Build.0 = Release|x64
+		{28AD15C3-2D81-4716-96FC-36C4F1046BD4}.DebugLinux|x64.ActiveCfg = Debug|x64
+		{28AD15C3-2D81-4716-96FC-36C4F1046BD4}.DebugLinux|x64.Build.0 = Debug|x64
+		{28AD15C3-2D81-4716-96FC-36C4F1046BD4}.ReleaseLinux|x64.ActiveCfg = Release|x64
+		{28AD15C3-2D81-4716-96FC-36C4F1046BD4}.ReleaseLinux|x64.Build.0 = Release|x64
 		{721CE655-CE03-48AF-8A84-5267AFDBD4A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{721CE655-CE03-48AF-8A84-5267AFDBD4A4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{721CE655-CE03-48AF-8A84-5267AFDBD4A4}.Debug|x64.ActiveCfg = Debug|x64
@@ -64,6 +78,10 @@ Global
 		{721CE655-CE03-48AF-8A84-5267AFDBD4A4}.DebugMac|x64.Build.0 = Debug|x64
 		{721CE655-CE03-48AF-8A84-5267AFDBD4A4}.ReleaseMac|x64.ActiveCfg = Release|x64
 		{721CE655-CE03-48AF-8A84-5267AFDBD4A4}.ReleaseMac|x64.Build.0 = Release|x64
+		{721CE655-CE03-48AF-8A84-5267AFDBD4A4}.DebugLinux|x64.ActiveCfg = Debug|x64
+		{721CE655-CE03-48AF-8A84-5267AFDBD4A4}.DebugLinux|x64.Build.0 = Debug|x64
+		{721CE655-CE03-48AF-8A84-5267AFDBD4A4}.ReleaseLinux|x64.ActiveCfg = Release|x64
+		{721CE655-CE03-48AF-8A84-5267AFDBD4A4}.ReleaseLinux|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{28AD15C3-2D81-4716-96FC-36C4F1046BD4} = {97358EFC-80FB-4FB2-9DE6-4A2BA8112205}
