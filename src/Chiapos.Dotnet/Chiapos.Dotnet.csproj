@@ -10,7 +10,7 @@
         <Configurations>Debug;Release;DebugMac;ReleaseMac;DebugLinux;ReleaseLinux</Configurations>
     </PropertyGroup>
 
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' Or '$(Configuration)|$(Platform)' == 'DebugMac|x64' ">
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' Or '$(Configuration)|$(Platform)' == 'DebugMac|x64'  Or '$(Configuration)|$(Platform)' == 'DebugLinux|x64'">
       <DefineConstants>TRACECOREAPP;</DefineConstants>
     </PropertyGroup>
     
@@ -24,17 +24,17 @@
 
     <PropertyGroup Condition=" '$(RuntimeIdentifier)'=='osx-x64' ">
         <Blake3BinariesPath>..\..\lib\osx-x64</Blake3BinariesPath>
-        <DefineConstants>MAC</DefineConstants>
+        <DefineConstants>$(DefineConstants);MAC</DefineConstants>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(RuntimeIdentifier)'=='linux-x64' ">
         <Blake3BinariesPath>..\..\lib\linux-x64</Blake3BinariesPath>
-        <DefineConstants>LINUX</DefineConstants>
+        <DefineConstants>$(DefineConstants);LINUX</DefineConstants>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(RuntimeIdentifier)'=='win7-x64' ">
         <Blake3BinariesPath>..\..\lib\win-x64</Blake3BinariesPath>
-        <DefineConstants>WIN</DefineConstants>
+        <DefineConstants>$(DefineConstants);WIN</DefineConstants>
     </PropertyGroup>
 
     <ItemGroup>
