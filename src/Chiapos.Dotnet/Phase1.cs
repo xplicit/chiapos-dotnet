@@ -746,18 +746,15 @@ namespace Chiapos.Dotnet
                 else
                 {
                     // Writes out the right table for table 7
-                    ptmp_1_disks[table_index + 1].Write(
-                        globals.right_writer,
-                        new ReadOnlySpan<byte>(right_writer_buf)
-                            .Slice((int) (right_writer_count * right_entry_size_bytes)));
+                    ptmp_1_disks[table_index + 1].Write(globals.right_writer,
+                        new ReadOnlySpan<byte>(right_writer_buf, 0, (int) (right_writer_count * right_entry_size_bytes)));
                 }
 
                 globals.right_writer += right_writer_count * right_entry_size_bytes;
                 globals.right_writer_count += right_writer_count;
 
-                ptmp_1_disks[table_index].Write(
-                    globals.left_writer, new ReadOnlySpan<byte>(left_writer_buf)
-                        .Slice((int) (left_writer_count * compressed_entry_size_bytes)));
+                ptmp_1_disks[table_index].Write(globals.left_writer,
+                    new ReadOnlySpan<byte>(left_writer_buf, 0, (int) (left_writer_count * compressed_entry_size_bytes)));
                 globals.left_writer += left_writer_count * compressed_entry_size_bytes;
                 globals.left_writer_count += left_writer_count;
 
