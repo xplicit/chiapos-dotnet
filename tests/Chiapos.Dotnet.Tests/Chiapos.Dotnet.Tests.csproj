@@ -3,7 +3,8 @@
     <PropertyGroup>
         <TargetFramework>net5.0</TargetFramework>
         <IsPackable>false</IsPackable>
-        <Platforms>x64;Any CPU</Platforms>
+        <Platforms>x64;AnyCPU</Platforms>
+        <Configurations>Debug;Release;DebugMac;ReleaseMac</Configurations>
     </PropertyGroup>
 
     <ItemGroup>

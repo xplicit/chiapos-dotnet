@@ -5,13 +5,36 @@
         <TargetFramework>net5.0</TargetFramework>
         <RootNamespace>Chiapos.Dotnet</RootNamespace>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <Platforms>x64;Any CPU</Platforms>
+        <Platforms>x64;AnyCPU</Platforms>
+        <RuntimeIdentifiers>win7-x64;linux-x64;osx-x64</RuntimeIdentifiers>
+        <Configurations>Debug;Release;DebugMac;ReleaseMac</Configurations>
     </PropertyGroup>
 
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' Or '$(Configuration)|$(Platform)' == 'DebugMac|x64' ">
       <DefineConstants>TRACECOREAPP;</DefineConstants>
     </PropertyGroup>
+    
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'DebugMac|x64' Or '$(Configuration)|$(Platform)' == 'ReleaseMac|x64' ">
+        <RuntimeIdentifier>osx-x64</RuntimeIdentifier>
+    </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(RuntimeIdentifier)'=='osx-x64' ">
+        <Blake3BinariesPath>..\..\lib\osx-x64</Blake3BinariesPath>
+        <DefineConstants>MAC</DefineConstants>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(RuntimeIdentifier)'=='win7-x64' ">
+        <Blake3BinariesPath>..\..\lib\win-x64</Blake3BinariesPath>
+        <DefineConstants>WIN</DefineConstants>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ContentWithTargetPath Include="$(Blake3BinariesPath)\**" Condition="'$(Blake3BinariesPath)' != ''">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <TargetPath>%(RecursiveDir)\%(Filename)%(Extension)</TargetPath>
+        </ContentWithTargetPath>
+    </ItemGroup>
+    
     <ItemGroup>
       <ProjectReference Include="..\..\3rdparty\blake3\src\Blake3\Blake3.csproj" />
       <ProjectReference Include="..\..\3rdparty\fse\src\FiniteStateEntropy\FiniteStateEntropy.csproj" />
