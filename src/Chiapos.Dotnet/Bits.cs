@@ -237,7 +237,7 @@ namespace Chiapos.Dotnet
 
         public void ToBytes(byte[] array, int index)
         {
-            var span = array.AsSpan();
+            var span = array.AsSpan().Slice(index);
             
             int length = Div64Rem(m_length, out int shift);
             for (int i = 0; i < length; i++)
