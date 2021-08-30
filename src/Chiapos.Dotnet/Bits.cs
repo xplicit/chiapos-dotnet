@@ -188,8 +188,8 @@ namespace Chiapos.Dotnet
                     else
                     {
                         m_array[originalLength - 1] <<= BitsPerInt64 - extraBits;
-                        m_array[originalLength - 1] |= value.S0 >> extraBits;
-                        m_array[originalLength] = value.S0 & ((1UL << extraBits) - 1);
+                        m_array[originalLength - 1] |= value.S0 >> (length - (BitsPerInt64 - extraBits));
+                        m_array[originalLength] = value.S0 & ((1UL << (length - (BitsPerInt64 - extraBits))) - 1);
                     }
                 }
                 else

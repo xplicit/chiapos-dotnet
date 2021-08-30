@@ -297,6 +297,16 @@ namespace Chiapos.Dotnet.Tests
             };
             AssertBitsArray(g, expected, 128 + 72);
         }
+
+        [Test]
+        public void AppendValue_CanAppend32Bit_WhenDoesNotFitIn64Bit()
+        {
+            var g = new Bits(0xCAEA3F3, 38);
+            g.AppendValue(0xC0, 32);
+
+            var expected = new byte[] { 0x00, 0x32, 0xBA, 0x8F, 0xCC, 0x00, 0x00, 0x03, 0x00 };
+            AssertBitsArray(g, expected, 38 + 32);
+        }
         
         [Test]
         public void GetValue_ShouldReturnConstructorValue()
