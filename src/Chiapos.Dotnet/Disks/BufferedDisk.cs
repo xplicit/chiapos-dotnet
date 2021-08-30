@@ -146,6 +146,11 @@ namespace Chiapos.Dotnet.Disks
             write_buffer_size_ = 0;
         }
 
+        public void Close()
+        {
+            disk.Close();
+        }
+
         public void Truncate(ulong new_size)
         {
             FlushCache();

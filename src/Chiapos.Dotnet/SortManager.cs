@@ -260,6 +260,7 @@ namespace Chiapos.Dotnet
             foreach (var bucket in buckets_)
             {
                 bucket.file.FlushCache();
+                bucket.file.Close();
             }
 
             final_position_end = 0;
