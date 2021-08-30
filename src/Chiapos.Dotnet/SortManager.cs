@@ -223,7 +223,8 @@ namespace Chiapos.Dotnet
             if (!force_quicksort &&
                 Util.RoundSize(bucket_entries) * entry_size_ <= memory_size_)
             {
-                Console.WriteLine($"\tBucket {bucket_i} uniform sort. Ram: {have_ram:F3} GiB, qs_min: {qs_ram:F3}GiB.");
+                PerformanceTimer uniformSortTimer = new();
+                Console.Write($"\tBucket {bucket_i} uniform sort. Ram: {have_ram:F3} GiB, qs_min: {qs_ram:F3}GiB. ");
                 UniformSort.SortToMemory(
                     b.underlying_file,
                     0,
@@ -231,6 +232,7 @@ namespace Chiapos.Dotnet
                     entry_size_,
                     bucket_entries,
                     (int)(begin_bits_ + log_num_buckets_));
+                uniformSortTimer.PrintElapsed("Took");
             }
             else
             {

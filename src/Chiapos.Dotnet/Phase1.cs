@@ -185,7 +185,7 @@ namespace Chiapos.Dotnet
                 // end of parallel execution
 
                 // Total matches found in the left table
-                Console.WriteLine("\tTotal matches: {globals.matches}");
+                Console.WriteLine($"\tTotal matches: {globals.matches}");
 
                 table_sizes[table_index] = globals.left_writer_count;
                 table_sizes[table_index + 1] = globals.right_writer_count;
@@ -323,7 +323,7 @@ namespace Chiapos.Dotnet
                 ulong stripe_start_correction = 0xffffffffffffffff;
                 ulong right_writer_count = 0;
                 ulong matches = 0; // Total matches
-
+                
                 // This is a sliding window of entries, since things in bucket i can match with things in
                 // bucket
                 // i + 1. At the end of each bucket, we find matches between the two previous buckets.
@@ -430,6 +430,9 @@ namespace Chiapos.Dotnet
                         pos++;
                         continue;
                     }
+                    
+                    if (stripe == 2562 && right_writer_count >= 23900 && bucket_L.Count > 121)
+                        Console.WriteLine("Hello");
 
                     // Keep reading left entries into bucket_L and R, until we run out of things
                     if (y_bucket == bucket)
@@ -562,6 +565,9 @@ namespace Chiapos.Dotnet
                             current_entries_to_write = future_entries_to_write.ToList();
                             future_entries_to_write.Clear();
 
+                            if (stripe == 2562 && right_writer_count >= 24200)
+                                Console.WriteLine("Hello");
+
                             for (int i = 0; i < idx_count; i++)
                             {
                                 PlotEntry L_entry = bucket_L[idx_L[i]];
@@ -611,6 +617,8 @@ namespace Chiapos.Dotnet
                             {
                                 var (L_entry, R_entry, f_output) = current_entries_to_write[i];
 
+                                if (stripe == 2562 && right_writer_count == 24575)
+                                    Console.WriteLine("Hello");
                                 // We only need k instead of k + kExtraBits bits for the last table
                                 Bits new_entry = table_index + 1 == 7
                                     ? (Bits) f_output.Item1.Slice(0, k)
