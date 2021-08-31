@@ -272,6 +272,8 @@ namespace Chiapos.Dotnet
 
         void phase1_thread(ThreadData ptd)
         {
+            PerformanceTimer perfTimer = new();
+            
             ulong right_entry_size_bytes = ptd.right_entry_size_bytes;
             byte k = ptd.k;
             byte table_index = ptd.table_index;
@@ -363,6 +365,7 @@ namespace Chiapos.Dotnet
                         ptd.theirs.WaitOne();
                     }
 
+                    perfTimer.PrintElapsed("\tProcessing bucket");
                     globals.L_sort_manager.TriggerNewBucket(left_reader);
                 }
 

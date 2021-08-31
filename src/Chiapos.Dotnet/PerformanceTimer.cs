@@ -10,9 +10,23 @@ namespace Chiapos.Dotnet
         public void PrintElapsed(string text)
         {
             timer.Stop();
-            var elapsed = timer.ElapsedMilliseconds / 1000;
+            if (timer.ElapsedMilliseconds >= 20000)
+            {
+                var elapsed = timer.ElapsedMilliseconds / 1000;
+                Console.WriteLine($"{text} {elapsed}s");
+            }
+            else
+            {
+                var elapsed = timer.ElapsedMilliseconds;
+                Console.WriteLine($"{text} {elapsed}ms");
+            }
+        }
 
-            Console.WriteLine($"{text} {elapsed}s");
+        public void ResetAndPrintElapsed(string text)
+        {
+            timer.Stop();
+            PrintElapsed(text);
+            timer.Restart();
         }
     }
 }

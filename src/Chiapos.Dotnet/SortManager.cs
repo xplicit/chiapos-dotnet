@@ -190,6 +190,8 @@ namespace Chiapos.Dotnet
 
         void SortBucket()
         {
+            PerformanceTimer sortTimer = new();
+            
             if (memory_start_ == null)
             {
                 // we allocate the memory to sort the bucket in lazily. It'se freed
@@ -229,7 +231,6 @@ namespace Chiapos.Dotnet
             if (!force_quicksort &&
                 Util.RoundSize(bucket_entries) * entry_size_ <= memory_size_)
             {
-                PerformanceTimer uniformSortTimer = new();
                 Console.Write($"\tBucket {bucket_i} uniform sort. Ram: {have_ram:F3} GiB, qs_min: {qs_ram:F3}GiB. ");
                 UniformSort.SortToMemory(
                     b.underlying_file,
@@ -238,14 +239,13 @@ namespace Chiapos.Dotnet
                     entry_size_,
                     bucket_entries,
                     (int)(begin_bits_ + log_num_buckets_));
-                uniformSortTimer.PrintElapsed("Took");
             }
             else
             {
                 // Are we in Compress phrase 1 (quicksort=1) or is it the last bucket (quicksort=2)?
                 // Perform quicksort if so (SortInMemory algorithm won't always perform well), or if we
                 // don't have enough memory for uniform sort
-                Console.WriteLine($"\tBucket {bucket_i} QS. Ram: {have_ram:F3} GiB, u_sort min: {u_ram:F3}GiB, " +
+                Console.Write($"\tBucket {bucket_i} QS. Ram: {have_ram:F3} GiB, u_sort min: {u_ram:F3}GiB, " +
                                   $"qs min: {qs_ram:F3} GiB. force_qs: {force_quicksort}");
 
                 b.underlying_file.Read(0, memory_start_, 0, bucket_entries * entry_size_);
@@ -260,6 +260,8 @@ namespace Chiapos.Dotnet
             final_position_start = final_position_end;
             final_position_end += b.write_pointer;
             next_bucket_to_sort += 1;
+            
+            sortTimer.PrintElapsed("Took");
         }
 
 
