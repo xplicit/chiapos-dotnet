@@ -88,8 +88,11 @@ namespace Chiapos.Dotnet
             }
             ulong bucket_index = Util.ExtractNum(entry, entry_size_, begin_bits_, log_num_buckets_);
             bucket_t b = buckets_[(int)bucket_index];
-            b.file.Write(b.write_pointer, entry.Slice(0, entry_size_));  //Can entry be other length that entry size?
-            b.write_pointer += entry_size_;
+            lock (b.syncRoot)
+            {
+                b.file.Write(b.write_pointer, entry.Slice(0, entry_size_)); //Can entry be other length that entry size?
+                b.write_pointer += entry_size_;
+            }
         }
         
         internal class bucket_t
@@ -99,7 +102,10 @@ namespace Chiapos.Dotnet
                 this.underlying_file = f;
                 this.file = new BufferedDisk(this.underlying_file, 0);
                 this.write_pointer = 0;
+                this.syncRoot = new object();
             }
+
+            public object syncRoot;
 
             // The amount of data written to the disk bucket
             public ulong write_pointer;

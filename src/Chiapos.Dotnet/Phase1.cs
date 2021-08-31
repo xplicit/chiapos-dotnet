@@ -260,15 +260,12 @@ namespace Chiapos.Dotnet
                     x++;
                 }
 
-                lock (syncRoot)
+                // Write it out
+                for (uint i = 0; i < right_writer_count; i++)
                 {
-                    // Write it out
-                    for (uint i = 0; i < right_writer_count; i++)
-                    {
-                        globals.L_sort_manager.AddToCache(
-                            new ReadOnlySpan<byte>(right_writer_buf, (int) (i * entry_size_bytes),
-                                (int) entry_size_bytes));
-                    }
+                    globals.L_sort_manager.AddToCache(
+                        new ReadOnlySpan<byte>(right_writer_buf, (int) (i * entry_size_bytes),
+                            (int) entry_size_bytes));
                 }
             }
         }
