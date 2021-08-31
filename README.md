@@ -23,7 +23,21 @@ Currently the project does not have any performance metrics, because it's not po
 
 ## How to Build
 
-TBD.
+    git clone https://github.com/xplicit/chiapos-dotnet
+    cd chiapos-dotnet
+    git submodule update --init --recursive
+    
+Windows:
+
+    dotnet build -c Release /p:Platform=x64 chiapos-dotnet.sln
+
+Linux:
+    
+    dotnet build -c ReleaseLinux /p:Platform=x64 chiapos-dotnet.sln
+
+Mac:
+
+    dotnet build -c ReleaseMac /p:Platform=x64 chiapos-dotnet.sln
 
 ## Roadmap
 
