@@ -7,8 +7,8 @@ namespace Chiapos.Dotnet
     public class ThreadData
     {
         public int index;
-        public ManualResetEvent mine;
-        public ManualResetEvent theirs;
+        public AutoResetEvent mine;
+        public AutoResetEvent theirs;
         public ulong right_entry_size_bytes;
         public byte k;
         public byte table_index;

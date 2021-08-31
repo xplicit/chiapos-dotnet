@@ -133,13 +133,13 @@ namespace Chiapos.Dotnet
                 PerformanceTimer computation_pass_timer;
 
                 var td = new ThreadData[num_threads];
-                var mutex = new ManualResetEvent[num_threads];
+                var mutex = new AutoResetEvent[num_threads];
 
                 var threads = new List<Thread>();
 
                 for (int i = 0; i < num_threads; i++)
                 {
-                    mutex[i] = new ManualResetEvent(false);
+                    mutex[i] = new AutoResetEvent(false);
                 }
 
                 for (int i = 0; i < num_threads; i++)
@@ -161,13 +161,8 @@ namespace Chiapos.Dotnet
                     var threadData = td[i];
 
                     var thread = new Thread(() => phase1_thread(threadData));
-#if SKIPF1
-                    mutex[num_threads - 1].Set();
-                    phase1_thread(threadData);
-#else
                     threads.Add(thread);
                     thread.Start();
-#endif
                 }
 
                 mutex[num_threads - 1].Set();
