@@ -13,6 +13,10 @@
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' Or '$(Configuration)|$(Platform)' == 'DebugMac|x64'  Or '$(Configuration)|$(Platform)' == 'DebugLinux|x64'">
       <DefineConstants>TRACECOREAPP;</DefineConstants>
     </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' Or '$(Configuration)|$(Platform)' == 'ReleaseMac|x64'  Or '$(Configuration)|$(Platform)' == 'ReleaseLinux|x64'">
+        <Optimize>true</Optimize>
+    </PropertyGroup>
     
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'DebugMac|x64' Or '$(Configuration)|$(Platform)' == 'ReleaseMac|x64' ">
         <RuntimeIdentifier>osx-x64</RuntimeIdentifier>
