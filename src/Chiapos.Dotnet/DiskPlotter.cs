@@ -177,6 +177,8 @@ namespace Chiapos.Dotnet
             File.Delete(final_filename);
 
             var phaseFlags = show_progress ? PhaseFlags.ShowProgress : PhaseFlags.None;
+            //always enable bitfield
+            phaseFlags |= PhaseFlags.EnableBitfield;
 
             {
                 // Scope for FileDisk
