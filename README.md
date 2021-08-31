@@ -6,12 +6,12 @@ chiapos-dotnet is custom port of official chia plotter (chiapos) to .NET Core. T
 
 ## Why?
 
-There are several ideas lays behind why I started this project. The first is reseach in performance view: it's very interesting how .NET5 and .NET6 work in comparison with C++ on real project which is widely used and not on artificially created performace tests. The second: I'd like to perform code/algorithms optimizations and see their improvements. Final stage (if get success in the first two phases) will be to increase plot build speed compared to other market solutions.  
+There are several ideas lays behind why I started this project. The first is reseach in performance view: it's very interesting how .NET5 and .NET6 work in comparison with C++ on real project which is widely used but not on artificially created performace tests. The second: I'd like to perform code/algorithms optimizations and see their improvements. Final stage (if get success in the first two phases) will be to increase plot build speed compared to other market solutions.  
 
 ## Is this pure C#?
 
 No, it's not. The project is not tight to C# only. If I find that some piece of code can't be executed on .NET as fast as on other platforms I will possible change this piece of code back to more effective C/C++ or whatever.
-Currently only Blake3 algorithm is implemented in Rust and used as a library, all other code is C#.
+Currently only Blake3 algorithm is implemented in Rust/C/Asm and used as a library, all other code is C#.
 
 ## What is current state?
 
