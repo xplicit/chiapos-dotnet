@@ -1,5 +1,7 @@
 using System;
 using System.Buffers.Binary;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using Dirichlet.Numerics;
 
 namespace Chiapos.Dotnet
@@ -26,7 +28,16 @@ namespace Chiapos.Dotnet
         // Note: requires that 8 bytes after the first sliced byte are addressable
         // (regardless of 'num_bits'). In practice it can be ensured by allocating
         // extra 7 bytes to all memory buffers passed to this function.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong SliceInt64FromBytes(ReadOnlySpan<byte> bytes, uint start_bit, uint num_bits)
+        {
+            ulong tmp = BinaryPrimitives.ReadUInt64BigEndian(bytes.Slice((int)start_bit >> 3, 8));
+            tmp <<= (int)start_bit & ((1 << 3) - 1);
+            tmp >>= 64 - (int)num_bits;
+            return tmp;
+        }
+
+        public static ulong SliceInt64FromBytesOld(ReadOnlySpan<byte> bytes, uint start_bit, uint num_bits)
         {
             ulong tmp;
             uint index = 0;
