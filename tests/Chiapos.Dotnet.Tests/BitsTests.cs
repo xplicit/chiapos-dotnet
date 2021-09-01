@@ -111,6 +111,18 @@ namespace Chiapos.Dotnet.Tests
             };
             AssertBitsArray(x3, expected, 128 + 4);
         }
+        
+        [Test]
+        public void Slice_CanSliceLargeBitsIntoMoreThan64BitValue()
+        {
+            var x = ((UInt128)0x1E0EEF63E7 << 64) + (UInt128)0x1336D7EB2558F7BA;
+            var bits = new Bits(x, 104);
+            var actual = bits.Slice(6, 102);
+
+            var expected = new byte[] { 0x83, 0xBB, 0xD8, 0xF9, 0xC4, 0xCD, 0xB5, 0xFA, 0xC9, 0x56, 0x3D, 0xEE };
+            AssertBitsArray(actual, expected, 102 - 6);
+        }
+        
         /*
             SECTION("Slicing and manipulating")
     {
