@@ -5,6 +5,10 @@ namespace Chiapos.Dotnet
 {
     public class ParkBits : Bits
     {
+        public ParkBits() : base(0)
+        {
+            
+        }
         public ParkBits(UInt128 value, int length) : base(value, length)
         {
         }

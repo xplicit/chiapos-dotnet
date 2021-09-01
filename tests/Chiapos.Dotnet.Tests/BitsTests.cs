@@ -8,11 +8,6 @@ namespace Chiapos.Dotnet.Tests
     [TestFixture]
     public class BitsTests
     {
-        public void Slicing_and_Manipulation()
-        {
-            BitArray bits = new BitArray(1024);
-        }
-
         [Test]
         public void Slice_and_Manipulating()
         {
@@ -308,6 +303,16 @@ namespace Chiapos.Dotnet.Tests
                 0x29, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58
             };
             AssertBitsArray(g, expected, 128 + 72);
+        }
+
+        [Test]
+        public void AppendValue_CanAppendToEmptyBits()
+        {
+            var g = new Bits(0);
+            g.AppendValue(0x01020304_05060708, 32);
+            var actual = g.GetValue(); 
+
+            Assert.That(actual, Is.EqualTo(0x05060708));
         }
 
         [Test]
