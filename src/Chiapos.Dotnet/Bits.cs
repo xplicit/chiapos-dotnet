@@ -264,6 +264,12 @@ namespace Chiapos.Dotnet
 
         public static Bits operator + (Bits a, Bits b)
         {
+            if (a == null)
+                return b;
+            
+            if (b == null)
+                return a;
+            
             Bits result = new Bits(a.m_length + b.m_length);
             
             int aLength = GetInt64ArrayLengthFromBitLength(a.m_length);
