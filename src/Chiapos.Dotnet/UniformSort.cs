@@ -26,7 +26,7 @@ namespace Chiapos.Dotnet
         {
             ulong memory_len = Util.RoundSize(num_entries) * (ulong) entry_len;
             var swap_space = new byte[entry_len];
-            var buffer = new byte[BUF_SIZE];
+            var buffer = new byte[BUF_SIZE + 7];
             ulong bucket_length = 0;
             // The number of buckets needed (the smallest power of 2 greater than 2 * num_entries).
             while ((1UL << (int) bucket_length) < 2 * num_entries) bucket_length++;
