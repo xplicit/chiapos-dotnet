@@ -135,19 +135,21 @@ namespace Chiapos.Dotnet
                 var td = new ThreadData[num_threads];
                 var mutex = new AutoResetEvent[num_threads];
 
+                var phase1_num_threads = 1;
                 var threads = new List<Thread>();
 
-                for (int i = 0; i < num_threads; i++)
+                for (int i = 0; i < phase1_num_threads; i++)
                 {
                     mutex[i] = new AutoResetEvent(false);
                 }
 
-                for (int i = 0; i < num_threads; i++)
+                for (int i = 0; i < phase1_num_threads; i++)
                 {
                     td[i] = new ThreadData();
+                    td[i].phase1_num_threads = phase1_num_threads;
                     td[i].index = i;
                     td[i].mine = mutex[i];
-                    td[i].theirs = mutex[(num_threads + i - 1) % num_threads];
+                    td[i].theirs = mutex[(phase1_num_threads + i - 1) % phase1_num_threads];
 
                     td[i].prevtableentries = prevtableentries;
                     td[i].right_entry_size_bytes = right_entry_size_bytes;
@@ -165,14 +167,14 @@ namespace Chiapos.Dotnet
                     thread.Start();
                 }
 
-                mutex[num_threads - 1].Set();
+                mutex[phase1_num_threads - 1].Set();
 
                 foreach (var thread in threads)
                 {
                     thread.Join();
                 }
 
-                for (int i = 0; i < num_threads; i++)
+                for (int i = 0; i < phase1_num_threads; i++)
                 {
                     mutex[i].Dispose();
                 }
@@ -283,6 +285,7 @@ namespace Chiapos.Dotnet
             ulong prevtableentries = ptd.prevtableentries;
             uint compressed_entry_size_bytes = ptd.compressed_entry_size_bytes;
             var ptmp_1_disks = ptd.ptmp_1_disks;
+            var num_threads = ptd.phase1_num_threads;
 
             // Streams to read and right to tables. We will have handles to two tables. We will
             // read through the left table, compute matches, and evaluate f for matching entries,
@@ -305,11 +308,11 @@ namespace Chiapos.Dotnet
             // Start at left table pos = 0 and iterate through the whole table. Note that the left table
             // will already be sorted by y
             ulong totalstripes = (prevtableentries + globals.stripe_size - 1) / globals.stripe_size;
-            ulong threadstripes = (totalstripes + (ulong) globals.num_threads - 1) / (ulong) globals.num_threads;
+            ulong threadstripes = (totalstripes + (ulong) num_threads - 1) / (ulong) num_threads;
 
             for (ulong stripe = 0; stripe < threadstripes; stripe++)
             {
-                ulong pos = (stripe * (ulong)globals.num_threads + (ulong)ptd.index) * globals.stripe_size;
+                ulong pos = (stripe * (ulong)num_threads + (ulong)ptd.index) * globals.stripe_size;
                 ulong endpos = pos + globals.stripe_size + 1; // one y value overlap
                 ulong left_reader = pos * entry_size_bytes;
                 ulong left_writer_count = 0;
@@ -336,8 +339,8 @@ namespace Chiapos.Dotnet
                 bool bStripePregamePair = false;
                 bool bStripeStartPair = false;
                 bool need_new_bucket = false;
-                bool first_thread = ptd.index % globals.num_threads == 0;
-                bool last_thread = ptd.index % globals.num_threads == globals.num_threads - 1;
+                bool first_thread = ptd.index % num_threads == 0;
+                bool last_thread = ptd.index % num_threads == num_threads - 1;
 
                 ulong L_position_base = 0;
                 ulong R_position_base = 0;

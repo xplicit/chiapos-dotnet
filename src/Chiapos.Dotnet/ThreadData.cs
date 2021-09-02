@@ -7,6 +7,7 @@ namespace Chiapos.Dotnet
     public class ThreadData
     {
         public int index;
+        public int phase1_num_threads;
         public AutoResetEvent mine;
         public AutoResetEvent theirs;
         public ulong right_entry_size_bytes;
