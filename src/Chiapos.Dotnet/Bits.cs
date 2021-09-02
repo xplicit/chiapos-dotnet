@@ -349,7 +349,7 @@ namespace Chiapos.Dotnet
             else //we have two ulongs
             {
                 Debug.Assert(bIndex == bLastIndex - 1);
-                left = (b.m_array[bIndex++] & ((1UL << (bShiftCount)) - 1)) << bShiftCount;
+                left = (b.m_array[bIndex++] & ((1UL << (aShiftCount)) - 1)) << bShiftCount;
                 right = b.m_array[bIndex];
                 result.m_array[resultIndex] = left | right;
             } 
@@ -368,7 +368,7 @@ namespace Chiapos.Dotnet
             int resultArrayLength = GetInt64ArrayLengthFromBitLength(end - start);
             int startBitIndex = Div64Rem(start, out int startShiftCount);
             Div64Rem(m_length, out int srcLengthShift);
-            int srcLength = GetInt64ArrayLengthFromBitLength(m_length);
+            int srcArrayLength = GetInt64ArrayLengthFromBitLength(m_length);
             int endIndex = Div64Rem(end, out int endShiftCount);
             int resultLastIndex = Div64Rem(end - start, out int resultShift);
 
@@ -384,7 +384,7 @@ namespace Chiapos.Dotnet
             else
             {
                 //Source is only 1 64bit ulong
-                if (srcLength == 1)
+                if (srcArrayLength == 1)
                 {
                     ulong value = m_array[0] >> (m_length - endShiftCount);
                     value &= (1UL << (endShiftCount - startShiftCount)) - 1;
@@ -439,7 +439,7 @@ namespace Chiapos.Dotnet
                             left >>= startShiftCount - endShiftCount;
 
                             //two cases: src can be last byte or not last byte
-                            int lastShift = srcIndex == srcLength - 1 ? srcLengthShift - endShiftCount : BitsPerInt64 - endShiftCount;
+                            int lastShift = srcIndex == srcArrayLength - 1 ? srcLengthShift - endShiftCount : BitsPerInt64 - endShiftCount;
                             right = m_array[srcIndex] >> lastShift;
 
                             result.m_array[resultIndex] = left | right;
@@ -447,20 +447,24 @@ namespace Chiapos.Dotnet
                     }
                     else
                     {
-                        //FIXIT: we need to calculate lastShift depending on src last byte
-                        int lastShift;
-                        
                         if (dstBits > BitsPerInt64)
                         {
                             ulong left = m_array[srcIndex++] << startShiftCount;
-                            ulong right = m_array[srcIndex] >> (srcLengthShift - startShiftCount) & 0x3F;
+                            //srcLengthShift can be 0, so get remainder by 64 bit
+                            ulong right = m_array[srcIndex] >> (((srcIndex == srcArrayLength - 1 ? srcLengthShift : BitsPerInt64) - startShiftCount) & 0x3F);
                             result.m_array[resultIndex++] = left | right;
                             dstBits -= BitsPerInt64;
                         }
+                        
+                        //now we have last ulong in dst.
+                        //If srcIndex is not last ulong we copy |<-startShiftCount (skip) -><--- dstBits --><--- remainingBits (skip) -->|
+                        //if srcIndex is last ulong we copy |<--- (BitsPerInt64 - srcLengthShift) (0000 - skip) --><-- startShiftCount (skip) --><-- dstBits --><--- remainingBits (skip) -->|
 
-                        int remainingBits = endShiftCount - startShiftCount;
-                        ulong mask = (1UL << remainingBits) - 1;
-                        result.m_array[resultIndex] = (m_array[srcIndex] >> ((srcLengthShift - endShiftCount) & 0x3F)) & mask;
+                        int remainingBits = srcIndex == srcArrayLength - 1
+                            ? (srcLengthShift - startShiftCount - dstBits) & 0x3F
+                            : BitsPerInt64 - startShiftCount - dstBits;
+                        ulong mask = (1UL << dstBits) - 1;
+                        result.m_array[resultIndex] = (m_array[srcIndex] >> remainingBits) & mask;
                     }
                 }
             }

@@ -414,6 +414,41 @@ namespace Chiapos.Dotnet.Tests
         }
 
         [Test]
+        public void OperatorPlus_CanSumLargeBits()
+        {
+            var y1 = new Bits(130, 31);
+            var L = new Bits(((UInt128)0x4CAAF91F5 << 64) + (UInt128)0xE752E38_9DC9A0A72, 64 + 36);
+            var R = new Bits(((UInt128)0xEF61AFE2E << 64) + (UInt128)0x9C198FE_A7C700C76, 64 + 36);
+
+            var actual = y1 + L + R;
+            var expected = new byte[] { 
+                0x00, 0x00, 0x01, 0x04, 0x99, 0x55, 0xF2, 0x3E,
+                0xBC, 0xEA, 0x5C, 0x71, 0x3B, 0x93, 0x41, 0x4E,
+                0x5D, 0xEC, 0x35, 0xFC, 0x5D, 0x38, 0x33, 0x1f,
+                0xD4, 0xF8, 0xE0, 0x18, 0xEC
+            };
+            
+            AssertBitsArray(actual, expected, 31 + 100 + 100);
+        }
+        
+        [Test]
+        public void OperatorPlus_CanSumLargeBitsOfLength75()
+        {
+            var y1 = new Bits(24, 31);
+            var L = new Bits(new ulong[]{0x59540217762ED3F8, 0x510}, 75);
+            var R = new Bits(new ulong[]{0xE808DD3011BC859A, 0x70C}, 75);
+
+            var actual = y1 + L + R;
+            var expected = new byte[] { 
+                0x00, 0x00, 0x00, 0x30, 0xB2, 0xA8, 0x04, 0x2E,
+                0xEC, 0x5D, 0xA7, 0xF1, 0x44, 0x3A, 0x02, 0x37,
+                0x4C, 0x04, 0x6F, 0x21, 0x66, 0xB8, 0x60
+            };
+            
+            AssertBitsArray(actual, expected, 31 + 75 + 75);
+        }
+
+        [Test]
         public void Slice_FromStartToEnd()
         {
             var bits = new byte[] { 0b_00100101, 0b_01000010, 0b_01010000, 0b_01010101, 0b_01010101 };
@@ -498,6 +533,18 @@ namespace Chiapos.Dotnet.Tests
             Bits g = new Bits(bits, 512);
             var x = g.Slice(455, 455 + 35);
             Assert.That(x.GetValue(), Is.EqualTo(0x373b3dfc4));
+        }
+
+        [Test]
+        public void Slice_CanSlice100bitsInside112bits()
+        {
+            Bits g = new Bits(((UInt128)0xD1DAD3A8_94B7 << 64) + (UInt128)0x071ACB52A43A061E, 112);
+
+            var actual = g.Slice(7, 107);
+            
+            //17107438075371556197
+            var expected = new byte[] { 0xED, 0x69, 0xD4, 0x4A, 0x5B, 0x83, 0x8D, 0x65, 0xA9, 0x52, 0x1D, 0x03, 0x00 };
+            AssertBitsArray(actual, expected, 100);
         }
         
         private void AssertBitsArray(Bits actual, byte[] expectedArray, int expectedLength)
