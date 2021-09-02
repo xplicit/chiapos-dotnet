@@ -82,8 +82,9 @@ namespace Chiapos.Dotnet
         public Bits(ReadOnlySpan<ulong> values, int valueLength)
         {
             m_length = valueLength;
-            m_array = new ulong[GetInt64ArrayLengthFromBitLength(valueLength)];
-            values.CopyTo(m_array);
+            var arrayLength= GetInt64ArrayLengthFromBitLength(valueLength);
+            m_array = new ulong[arrayLength];
+            values[..arrayLength].CopyTo(m_array);
         }
 
         public Bits(ReadOnlySpan<byte> bytes, int length)
