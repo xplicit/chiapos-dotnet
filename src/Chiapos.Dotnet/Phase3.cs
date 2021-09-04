@@ -66,7 +66,7 @@ void WriteParkToFile(
         Util.IntToTwoBytesLE(index, (ushort)deltas_size);
     }
 
-    index.Slice(2 + deltas_size);
+    index = index.Slice(2 + deltas_size);
     index.Fill(0);
 
     final_disk.Write(writer, park_buffer);
