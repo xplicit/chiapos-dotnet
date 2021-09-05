@@ -142,7 +142,7 @@ namespace Chiapos.Dotnet
             if (deltas_to_write.Count > 0)
             {
                 int num_bytes = ChiaEncoding.ANSEncodeDeltas(deltas_to_write, Constants.kC3R,
-                    new Span<byte>(C3_entry_buf, +2, C1_entry_buf.Length - 2));
+                    new Span<byte>(C3_entry_buf, +2, C3_entry_buf.Length - 2));
                 Array.Clear(C3_entry_buf, num_bytes + 2, (int) size_C3 - (num_bytes + 2));
                 final_file_writer_2 = begin_byte_C3 + (num_C1_entries - 1) * size_C3;
 
@@ -187,6 +187,7 @@ namespace Chiapos.Dotnet
                 tmp2_disk.Write(final_file_writer_1, new ReadOnlySpan<byte>(table_pointer_bytes, 0, 8));
                 final_file_writer_1 += 8;
             }
+            tmp2_disk.Close();
 
             Console.WriteLine("\tFinal table pointers:");
 
