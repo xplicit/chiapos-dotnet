@@ -61,8 +61,8 @@ Mac:
 ## Roadmap
 
    * [x] Translate C++ code to C#
-   * [ ] Debug code and verify correctness of generated plots via ProofOfSpace
-   * [ ] Make performance metrics
+   * [x] Debug code and verify correctness of generated plots via ProofOfSpace
+   * [x] Make performance metrics
    * [ ] Write as much tests as possible before start next step
    * [ ] Make code/algorithm optimizations and compare results with previous versions
  
