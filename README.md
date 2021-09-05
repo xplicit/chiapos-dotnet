@@ -20,7 +20,7 @@ Current state: porting is completed, currently verifying the correctness. k=25 p
 ## Performance metrics
 
 Ubuntu Linux 20.04, Intel Xeon Gold 6208U, 384GB RAM,
-RAM disk is used for tmp1/tmp2 and final dirs. Final dir is external USB disk
+RAM disk is used for tmp1/tmp2 and final dirs.
 
 #### k=25, r=32 Number of Threads: 32
 
