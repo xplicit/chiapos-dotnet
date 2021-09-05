@@ -19,7 +19,26 @@ Current state: porting is completed, currently verifying the correctness. k=25 p
 
 ## Performance metrics
 
-Currently the project does not have any performance metrics, because it's not ported completely.
+Ubuntu Linux 20.04, Intel Xeon Gold 6208U, 384GB RAM,
+RAM disk is used for tmp1/tmp2 and final dirs. Final dir is external USB disk
+
+#### k=25, r=32 Number of Threads: 32
+
+Time in seconds
+
+| Phase   |    master   | original  | ProofOfSpace  |
+|---------|-------------|-----------|---------------|
+| F1      |    0.546    |    0.546  |    2.508      |
+| Phase1  |  226        |  226      |   56.7        |
+| Phase2  |  205        |  205      |   10.5        |
+| Phase3  |  107        |  107      |   35.4        |
+| Phase4  |    8.66     |    8.66   |    2.1        |
+| Total   |  548        |  548      |  104.7        |
+
+Legend:
+   - master   - current development in `master` branch
+   - original - original port from C++ ProofOfSpace to .NET (`original` branch)
+   - ProofOfSpace - official chiapos plot generator
 
 ## How to Build
 
