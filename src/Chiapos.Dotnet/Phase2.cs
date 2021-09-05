@@ -72,7 +72,7 @@ namespace Chiapos.Dotnet
             {
                 Console.WriteLine($"Backpropagating on table {table_index}");
 
-                //Timer scan_timer;
+                PerformanceTimer scan_timer = new();
 
                 next_bitfield.Clear();
 
@@ -117,10 +117,10 @@ namespace Chiapos.Dotnet
                 }
 
                 Console.WriteLine($"scanned table {table_index}");
-                //scan_timer.PrintElapsed("scanned time = ");
+                scan_timer.PrintElapsed("scanned time = ");
 
                 Console.WriteLine($"sorting table {table_index}");
-                //Timer sort_timer;
+                PerformanceTimer sort_timer = new();
 
                 // read the same table again. This time we'll output it to new files:
                 // * add sort_key (just the index of the current entry)
@@ -211,7 +211,7 @@ namespace Chiapos.Dotnet
                 if (table_index != 7)
                 {
                     sort_manager.FlushCache();
-                    //sort_timer.PrintElapsed("sort time = ");
+                    sort_timer.PrintElapsed("sort time = ");
 
                     // clear disk caches
                     disk.FreeMemory();
