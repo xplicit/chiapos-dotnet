@@ -1,3 +1,4 @@
+using System.Linq;
 using Dirichlet.Numerics;
 using NUnit.Framework;
 
@@ -146,6 +147,19 @@ namespace Chiapos.Dotnet.Tests
             Assert.That(Util.RoundPow2(1023), Is.EqualTo(512));
             Assert.That(Util.RoundPow2(1024), Is.EqualTo(1024));
             Assert.That(Util.RoundPow2(1025), Is.EqualTo(1024));
+        }
+
+        [Test]
+        public void WriteInt16Values_CanWrite()
+        {
+            UInt128 x = ((UInt128)0x0123456789ABCDEF << 64) + (UInt128)0xFEDCBA9876543210;
+
+            byte[] actual = new byte[16];
+            Util.IntTo16Bytes(actual, x);
+
+            byte[] expected = {0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF, 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32, 0x10};
+            
+            Assert.That(actual.SequenceEqual(expected));
         }
     }
 }

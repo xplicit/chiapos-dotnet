@@ -88,7 +88,14 @@ namespace Chiapos.Dotnet
         public static bool IntToTwoBytes(Span<byte> bytes, ushort value) =>
             BinaryPrimitives.TryWriteUInt16BigEndian(bytes, value);
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void IntTo16Bytes(Span<byte> result, UInt128 input)
+        {
+            BinaryPrimitives.TryWriteUInt64BigEndian(result.Slice(0, 8), input.S1);
+            BinaryPrimitives.TryWriteUInt64BigEndian(result.Slice(8, 8), input.S0);
+        }
+
+        public static void IntTo16BytesOld(Span<byte> result, UInt128 input)
         {
             ulong r = SwapBytes(input.S1);
             BitConverter.TryWriteBytes(result, r);
