@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using Chiapos.Dotnet.Disks;
 
 namespace Chiapos.Dotnet
@@ -66,7 +67,7 @@ namespace Chiapos.Dotnet
                 string bucket_filename = Path.Combine(tmp_dirname, $"{filename}.sort_bucket_{bucket_i:000}.tmp");
 #if !SKIPF1
                 File.Delete(bucket_filename); 
-                buckets_.Add(new bucket_t(new FileDisk(bucket_filename)));
+                buckets_.Add(new bucket_t(bucket_filename, entry_size));
 #else
                 var fileLength = File.Exists(bucket_filename) ? new FileInfo(bucket_filename).Length : 0;
                 buckets_.Add(new bucket_t(new FileDisk(bucket_filename)) {write_pointer = (ulong)fileLength});
@@ -88,31 +89,37 @@ namespace Chiapos.Dotnet
             }
             ulong bucket_index = Util.ExtractNum(entry, entry_size_, begin_bits_, log_num_buckets_);
             bucket_t b = buckets_[(int)bucket_index];
+            
             lock (b.syncRoot)
             {
-                b.file.Write(b.write_pointer, entry.Slice(0, entry_size_)); //Can entry be other length that entry size?
-                b.write_pointer += entry_size_;
+                var buffer = b.file.GetBuffer();
+                entry.Slice(0, entry_size_).CopyTo(buffer.Span);
+                b.file.SendBufferToWrite(entry_size_);
             }
         }
-        
+
+        public void WaitSaveData()
+        {
+            foreach (var bucket in buckets_)
+            {
+                bucket.file.WaitSaveData();
+            }
+        }
+
         internal class bucket_t
         {
-            internal bucket_t(FileDisk f)
+            internal bucket_t(string filename, int entrySize)
             {
-                this.underlying_file = f;
-                this.file = new BufferedDisk(this.underlying_file, 0);
-                this.write_pointer = 0;
+                this.underlying_file = new FileDisk(filename);
+                this.file = new ConsecutiveWriteDisk(filename, entrySize);
                 this.syncRoot = new object();
             }
 
             public object syncRoot;
 
-            // The amount of data written to the disk bucket
-            public ulong write_pointer;
-
             // The file for the bucket
             public FileDisk underlying_file;
-            public BufferedDisk file;
+            public ConsecutiveWriteDisk file;
         }
 
         public ReadOnlySpan<byte> Read(ulong begin, ulong length)
@@ -207,7 +214,8 @@ namespace Chiapos.Dotnet
 
             int bucket_i = (int) next_bucket_to_sort;
             bucket_t b = buckets_[bucket_i];
-            ulong bucket_entries = b.write_pointer / entry_size_;
+            ulong fileSize = b.file.GetBytesWritten();
+            ulong bucket_entries = fileSize / entry_size_;
             ulong entries_fit_in_memory = memory_size_ / entry_size_;
 
             double have_ram = entry_size_ * entries_fit_in_memory / (1024.0 * 1024.0 * 1024.0);
@@ -218,10 +226,10 @@ namespace Chiapos.Dotnet
             {
                 throw new InsufficientMemoryException(
                     "Not enough memory for sort in memory. Need to sort " +
-                    $"{b.write_pointer / (1024.0 * 1024.0 * 1024.0)} GiB");
+                    $"{fileSize / (1024.0 * 1024.0 * 1024.0)} GiB");
             }
 
-            bool last_bucket = (bucket_i == buckets_.Count - 1) || buckets_[bucket_i + 1].write_pointer == 0;
+            bool last_bucket = (bucket_i == buckets_.Count - 1) || buckets_[bucket_i + 1].file.GetBytesWritten() == 0;
 
             bool force_quicksort = (strategy_ == SortStrategy.Quicksort)
                                    || (strategy_ == SortStrategy.QuicksortLast && last_bucket);
@@ -253,12 +261,12 @@ namespace Chiapos.Dotnet
             }
 
             // Deletes the bucket file
-            string filename = b.file.GetFileName();
+            string filename = b.underlying_file.GetFileName();
             b.underlying_file.Close();
             File.Delete(filename);
 
             final_position_start = final_position_end;
-            final_position_end += b.write_pointer;
+            final_position_end += fileSize;
             next_bucket_to_sort += 1;
             
             sortTimer.PrintElapsed("Took");
@@ -267,11 +275,10 @@ namespace Chiapos.Dotnet
 
         public void FlushCache()
         {
-            foreach (var bucket in buckets_)
-            {
-                bucket.file.FlushCache();
-                bucket.file.Close();
-            }
+                foreach (var bucket in buckets_)
+                {
+                    bucket.file.FlushCache().Wait();
+                }
 
             final_position_end = 0;
             memory_start_ = null;
