@@ -66,8 +66,10 @@ namespace Chiapos.Dotnet
             {
                 string bucket_filename = Path.Combine(tmp_dirname, $"{filename}.sort_bucket_{bucket_i:000}.tmp");
 #if !SKIPF1
-                File.Delete(bucket_filename); 
-                buckets_.Add(new bucket_t(bucket_filename, entry_size));
+                File.Delete(bucket_filename);
+                var bucket = new bucket_t(bucket_filename, entry_size);
+                buckets_.Add(bucket);
+                if (bucket_i < 4) bucket.file.Start();
 #else
                 var fileLength = File.Exists(bucket_filename) ? new FileInfo(bucket_filename).Length : 0;
                 buckets_.Add(new bucket_t(new FileDisk(bucket_filename)) {write_pointer = (ulong)fileLength});
@@ -88,21 +90,22 @@ namespace Chiapos.Dotnet
                 throw new ArgumentException("Already finished.");
             }
             ulong bucket_index = Util.ExtractNum(entry, entry_size_, begin_bits_, log_num_buckets_);
-            bucket_t b = buckets_[(int)bucket_index];
+            bucket_t b = buckets_[(int)bucket_index % 4];
             
-            lock (b.syncRoot)
-            {
-                var buffer = b.file.GetBuffer();
-                entry.Slice(0, entry_size_).CopyTo(buffer.Span);
-                b.file.SendBufferToWrite(entry_size_);
-            }
+            //lock (b.syncRoot)
+            //{
+                b.file.Write(entry.Slice(0, entry_size_));
+                //var buffer = b.file.GetBuffer();
+                //entry.Slice(0, entry_size_).CopyTo(buffer.Span);
+                //b.file.SendBufferToWrite(entry_size_);
+            //}
         }
 
         public void WaitSaveData()
         {
             foreach (var bucket in buckets_)
             {
-                bucket.file.WaitSaveData();
+                //bucket.file.WaitSaveData();
             }
         }
 
@@ -111,7 +114,7 @@ namespace Chiapos.Dotnet
             internal bucket_t(string filename, int entrySize)
             {
                 this.underlying_file = new FileDisk(filename);
-                this.file = new ConsecutiveWriteDisk(filename, entrySize);
+                this.file = new RingBufferDisk(filename);
                 this.syncRoot = new object();
             }
 
@@ -119,7 +122,7 @@ namespace Chiapos.Dotnet
 
             // The file for the bucket
             public FileDisk underlying_file;
-            public ConsecutiveWriteDisk file;
+            public RingBufferDisk file;
         }
 
         public ReadOnlySpan<byte> Read(ulong begin, ulong length)
@@ -277,7 +280,7 @@ namespace Chiapos.Dotnet
         {
             foreach (var bucket in buckets_)
             {
-                bucket.file.FlushCache().Wait();
+                bucket.file.FlushCache();
             }
 
             final_position_end = 0;

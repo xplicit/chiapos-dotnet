@@ -35,7 +35,7 @@ namespace Chiapos.Dotnet.Disks
 
         public Memory<byte> GetBuffer()
         {
-            return pipe.Writer.GetMemory(entrySize);
+            return pipe.Writer.GetMemory(512 * 1024);
         }
         
         public async void SendBufferToWrite(int bytesWrittenToBuffer)
