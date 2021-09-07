@@ -1,57 +1,104 @@
-using System.Collections;
+using System;
+using System.Diagnostics;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace Chiapos.Dotnet
 {
     public class Bitfield
     {
-        private BitArray bitArray;
+        private ulong[] m_array;
+        private int m_length;
+        
+        private const int BitsPerInt64 = 64;
+        private const int BitsPerByte = 8;
 
-        public Bitfield(long size) : this((ulong)size) {}
-        public Bitfield(ulong size)
+        private const int BitShiftPerInt64 = 6;
+        private const int BitShiftPerByte = 3;
+
+        public ulong Length => (ulong)m_length;
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int GetInt64ArrayLengthFromBitLength(int n)
         {
-            bitArray = new BitArray((int) size);
+            Debug.Assert(n >= 0);
+            return (int)((uint)(n - 1 + (1 << BitShiftPerInt64)) >> BitShiftPerInt64);
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int GetByteArrayLengthFromBitLength(int n)
+        {
+            Debug.Assert(n >= 0);
+            return (int)((uint)(n - 1 + (1 << BitShiftPerByte)) >> BitShiftPerByte);
         }
 
-        public bool Get(ulong index)
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int Div64Rem(int number, out int remainder)
         {
-            return bitArray.Get((int) index);
+            uint quotient = (uint)number / 64;
+            remainder = number & (64 - 1);
+            return (int)quotient;
+        }
+        
+        public Bitfield(ulong length)
+        {
+            m_array = new ulong[GetInt64ArrayLengthFromBitLength((int)length)];
+            m_length = (int)length;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Set(ulong index)
         {
-            bitArray.Set((int)index, true);
+            ulong num = 1UL << (int)(index & (BitsPerInt64 - 1));
+            ref ulong local = ref this.m_array[index >> BitShiftPerInt64];
+            local |= num;
         }
-
-        public void Clear()
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Get(ulong index)
         {
-            bitArray.SetAll(false);
-        }
-
-        public ulong Length => (ulong)bitArray.Length;
-
-        public void Swap(ref Bitfield rhs)
-        {
-            var tmp = rhs.bitArray;
-            rhs.bitArray = this.bitArray;
-            this.bitArray = tmp;
+            ulong num = 1UL << (int)(index & (BitsPerInt64 - 1));
+            ref ulong local = ref this.m_array[index >> BitShiftPerInt64];
+            return (local & num) > 0;
         }
 
         public ulong Count(ulong startBit, ulong endBit)
         {
-            ulong result = 0;
-            //TODO: System.Numerics.BitOperations.PopCount
-            for (int i = (int)startBit; i < (int)endBit; i++)
+            int startIdx = (int)(startBit >> BitShiftPerInt64);
+            int endIdx = (int)(endBit >> BitShiftPerInt64);
+
+            int result = 0;
+
+            while (startIdx != endIdx)
             {
-                result += bitArray[i] ? 1U : 0U;
+                result += BitOperations.PopCount(m_array[startIdx]);
+                startIdx++;
             }
 
-            return result;
+            int tail = (int)(endBit & (BitsPerInt64 - 1));
+            if (tail > 0)
+            {
+                ulong mask = (1UL << tail) - 1;
+                result += BitOperations.PopCount(m_array[endIdx] & mask);
+            }
+
+            return (ulong)result;
+        }
+
+        public void Clear()
+        {
+            Span<ulong> span = m_array.AsSpan(0, GetInt64ArrayLengthFromBitLength(m_length));
+            span.Clear();
+        }
+        
+        public static void Swap(ref Bitfield lhs, ref Bitfield rhs)
+        {
+            (rhs, lhs) = (lhs, rhs);
         }
 
         public void FreeMemory()
         {
-            bitArray = null;
         }
-        
     }
 }

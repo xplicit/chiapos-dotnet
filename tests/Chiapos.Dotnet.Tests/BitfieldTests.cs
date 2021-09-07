@@ -41,7 +41,7 @@ namespace Chiapos.Dotnet.Tests
             for (uint i = 0; i < 512; ++i)
             {
                 Assert.That(b.Count(0, 512) == i);
-                Assert.That(!b.Get(i));
+                Assert.That(!b.Get(i), $"at index {i}");
                 b.Set(i);
                 Assert.That(b.Get(i));
             }

@@ -221,7 +221,7 @@ namespace Chiapos.Dotnet
                     new_table_sizes[table_index] = write_counter;
                 }
 
-                current_bitfield.Swap(ref next_bitfield);
+                Bitfield.Swap(ref current_bitfield, ref next_bitfield);
                 next_bitfield.Clear();
 
                 // The files for Table 1 and 7 are re-used, overwritten and passed on to

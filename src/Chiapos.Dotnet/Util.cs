@@ -53,6 +53,7 @@ namespace Chiapos.Dotnet
             return tmp;
         }
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong SliceInt64FromBytesFull(ReadOnlySpan<byte> bytes, uint start_bit, uint num_bits)
         {
             uint last_bit = start_bit + num_bits;
@@ -62,6 +63,7 @@ namespace Chiapos.Dotnet
             return r;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt128 SliceInt128FromBytes(ReadOnlySpan<byte> bytes, uint start_bit, uint num_bits)
         {
             if (num_bits <= 64)
@@ -73,17 +75,13 @@ namespace Chiapos.Dotnet
             return ((UInt128)high << 64) | low;
         }
 
-        public static bool IntToEightBytes(Span<byte> bytes, ulong value)
-        {
-            var x = SwapBytes(value);
-            return BitConverter.TryWriteBytes(bytes, x);
-        }
-        
-        public static ulong EightBytesToInt(ReadOnlySpan<byte> bytes)
-        {
-            var result = BitConverter.ToUInt64(bytes);
-            return SwapBytes(result);
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void IntToEightBytes(Span<byte> bytes, ulong value) =>
+            BinaryPrimitives.WriteUInt64BigEndian(bytes.Slice(0, 8), value);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ulong EightBytesToInt(ReadOnlySpan<byte> bytes) =>
+            BinaryPrimitives.ReadUInt64BigEndian(bytes.Slice(0, 8));
 
         public static bool IntToTwoBytes(Span<byte> bytes, ushort value) =>
             BinaryPrimitives.TryWriteUInt16BigEndian(bytes, value);
