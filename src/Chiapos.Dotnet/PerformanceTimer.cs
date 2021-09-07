@@ -28,5 +28,13 @@ namespace Chiapos.Dotnet
             PrintElapsed(text);
             timer.Restart();
         }
+        
+        public void PrintElapsedAndResume(string text)
+        {
+            timer.Stop();
+            PrintElapsed(text);
+            timer.Start();
+        }
+
     }
 }

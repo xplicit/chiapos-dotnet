@@ -73,6 +73,7 @@ namespace Chiapos.Dotnet
                 // end of parallel execution
             }
 
+            f1_start_time.PrintElapsedAndResume("F1 before flush, time:");
             globals.L_sort_manager.FlushCache();
             f1_start_time.PrintElapsed("F1 complete, time:");
 #endif

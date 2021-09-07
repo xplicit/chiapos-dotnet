@@ -20,6 +20,8 @@ namespace Chiapos.Dotnet.Disks
             
         private ulong bytesWritten;
         private Task savingTask;
+
+        private Semaphore sem = new Semaphore(16, 32);
         
         public string GetFileName() => filename;
 
@@ -114,12 +116,15 @@ namespace Chiapos.Dotnet.Disks
             {
                 try
                 {
+                    sem.WaitOne();
                     file.Write(tmpBuffer, 0, tmpBufferWritten);
+                    sem.Release();
                     Interlocked.Add(ref bytesWritten, (ulong)tmpBufferWritten);
                     tmpBufferWritten = 0;
                 }
                 catch (Exception ex)
                 {
+                    sem.Release();
                     Console.WriteLine(
                         $"Couldn't write {tmpBufferWritten} bytes at offset {file.Position} from {filename}. Error {ex.Message}. Retrying in five minutes");
                     file.Close();
