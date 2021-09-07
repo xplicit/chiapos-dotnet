@@ -309,6 +309,9 @@ namespace Chiapos.Dotnet
             // will already be sorted by y
             ulong totalstripes = (prevtableentries + globals.stripe_size - 1) / globals.stripe_size;
             ulong threadstripes = (totalstripes + (ulong) num_threads - 1) / (ulong) num_threads;
+            
+            var idx_L = new ushort[10000];
+            var idx_R = new ushort[10000];
 
             for (ulong stripe = 0; stripe < threadstripes; stripe++)
             {
@@ -324,8 +327,8 @@ namespace Chiapos.Dotnet
                 // This is a sliding window of entries, since things in bucket i can match with things in
                 // bucket
                 // i + 1. At the end of each bucket, we find matches between the two previous buckets.
-                var bucket_L = new List<PlotEntry>();
-                var bucket_R = new List<PlotEntry>();
+                var bucket_L = new List<PlotEntry>(1000);
+                var bucket_R = new List<PlotEntry>(1000);
 
                 ulong bucket = 0;
                 bool end_of_table = false; // We finished all entries in the left table
@@ -368,7 +371,7 @@ namespace Chiapos.Dotnet
                         ptd.theirs.WaitOne();
                     }
 
-                    perfTimer.PrintElapsed("\tProcessing bucket");
+                    perfTimer.ResetAndPrintElapsed("\tProcessing bucket");
                     globals.L_sort_manager.TriggerNewBucket(left_reader);
                 }
 
@@ -445,8 +448,6 @@ namespace Chiapos.Dotnet
                         // so now we can compare entries in both buckets to find matches. If two entries
                         // match, match, the result is written to the right table. However the writing
                         // happens in the next iteration of the loop, since we need to remap positions.
-                        var idx_L = new ushort[10000];
-                        var idx_R = new ushort[10000];
                         int idx_count = 0;
 
                         if (bucket_L.Count > 0)
@@ -609,11 +610,6 @@ namespace Chiapos.Dotnet
                             {
                                 var (L_entry, R_entry, f_output) = current_entries_to_write[i];
 
-                                // We only need k instead of k + kExtraBits bits for the last table
-                                Bits new_entry = table_index + 1 == 7
-                                    ? (Bits) f_output.Item1.Slice(0, k)
-                                    : f_output.Item1;
-
                                 // Maps the new positions. If we hit end of pos, we must write things in
                                 // both final_entries to write and current_entries_to_write, which are
                                 // in both position maps.
@@ -629,18 +625,12 @@ namespace Chiapos.Dotnet
                                 }
 
                                 newrpos = R_position_map[R_entry.pos % position_map_size] + R_position_base;
-                                // Position in the previous table
-                                new_entry.AppendValue(newlpos, pos_size);
 
                                 // Offset for matching entry
                                 if (newrpos - newlpos > (1U << (int) Constants.kOffsetSize) * 97 / 100)
                                 {
                                     throw new InvalidOperationException($"Offset too large: {newrpos - newlpos}");
                                 }
-
-                                new_entry.AppendValue(newrpos - newlpos, (int) Constants.kOffsetSize);
-                                // New metadata which will be used to compute the next f
-                                new_entry += f_output.Item2;
 
                                 if (right_writer_count >= right_buf_entries)
                                 {
@@ -649,6 +639,17 @@ namespace Chiapos.Dotnet
 
                                 if (bStripeStartPair)
                                 {
+                                    // We only need k instead of k + kExtraBits bits for the last table
+                                    Bits new_entry = table_index + 1 == 7
+                                        ? (Bits) f_output.Item1.Slice(0, k)
+                                        : f_output.Item1;
+                                    
+                                    // Position in the previous table
+                                    new_entry.AppendValue(newlpos, pos_size);
+                                    new_entry.AppendValue(newrpos - newlpos, (int) Constants.kOffsetSize);
+                                    // New metadata which will be used to compute the next f
+                                    new_entry += f_output.Item2;
+
                                     new_entry.ToBytes(right_writer_buf,
                                         (int) (right_writer_count * right_entry_size_bytes));
                                     right_writer_count++;
