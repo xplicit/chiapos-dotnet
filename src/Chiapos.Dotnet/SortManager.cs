@@ -275,10 +275,10 @@ namespace Chiapos.Dotnet
 
         public void FlushCache()
         {
-                foreach (var bucket in buckets_)
-                {
-                    bucket.file.FlushCache().Wait();
-                }
+            foreach (var bucket in buckets_)
+            {
+                bucket.file.FlushCache().Wait();
+            }
 
             final_position_end = 0;
             memory_start_ = null;

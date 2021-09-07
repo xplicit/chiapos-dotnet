@@ -15,6 +15,9 @@ namespace Chiapos.Dotnet.Disks
         private Pipe pipe = new Pipe(new PipeOptions(pauseWriterThreshold: 10 * 1024 * 1024, resumeWriterThreshold: 3 * 1024 * 1024));
         private FileStream file;
 
+        private byte[] tmpBuffer = new byte[1024 * 1024];
+        private int tmpBufferWritten = 0;
+            
         private ulong bytesWritten;
         private Task savingTask;
         
@@ -40,10 +43,9 @@ namespace Chiapos.Dotnet.Disks
             savingTask ??= WriteFileFromPipeAsync();
         }
 
-        public async void Close()
+        public async Task Close()
         {
             await pipe.Writer.CompleteAsync();
-            file?.Close();
         }
         
         async Task WriteFileFromPipeAsync()
@@ -67,6 +69,7 @@ namespace Chiapos.Dotnet.Disks
                 // Stop reading if there's no more data coming.
                 if (result.IsCompleted)
                 {
+                    FlushTempBuffer();
                     break;
                 }
             }
@@ -95,15 +98,30 @@ namespace Chiapos.Dotnet.Disks
 
             foreach (var memory in entry)
             {
+                if (tmpBufferWritten + memory.Length > tmpBuffer.Length)
+                {
+                    FlushTempBuffer();
+                }
+
+                memory.CopyTo(new Memory<byte>(tmpBuffer, tmpBufferWritten, tmpBuffer.Length - tmpBufferWritten));
+                tmpBufferWritten += memory.Length;
+            }
+        }
+
+        private void FlushTempBuffer()
+        {
+            while (tmpBufferWritten != 0)
+            {
                 try
                 {
-                    file.Write(memory.Span);
-                    Interlocked.Add(ref bytesWritten, (ulong)memory.Span.Length);
+                    file.Write(tmpBuffer, 0, tmpBufferWritten);
+                    Interlocked.Add(ref bytesWritten, (ulong)tmpBufferWritten);
+                    tmpBufferWritten = 0;
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine(
-                        $"Couldn't write {memory.Length} bytes at offset {file.Position} from {filename}. Error {ex.Message}. Retrying in five minutes");
+                        $"Couldn't write {tmpBufferWritten} bytes at offset {file.Position} from {filename}. Error {ex.Message}. Retrying in five minutes");
                     file.Close();
                     file = null;
                     Task.Delay(TimeSpan.FromMinutes(5)).Wait();
@@ -135,9 +153,10 @@ namespace Chiapos.Dotnet.Disks
         }
         public async Task FlushCache()
         {
-            Close();
+            Close().Wait();
             if (savingTask != null)
                 await savingTask;
+            file?.Close();
         }
 
         public void FreeMemory()
