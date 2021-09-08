@@ -3,6 +3,7 @@ using BenchmarkDotNet.Attributes;
 
 namespace Chiapos.Dotnet.Benchmarks
 {
+    [DisassemblyDiagnoser]
     public class SliceInt64FromBytesBenchmarks
     {
         private byte[] array;
