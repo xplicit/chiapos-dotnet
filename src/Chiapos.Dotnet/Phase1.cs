@@ -52,7 +52,7 @@ namespace Chiapos.Dotnet
             // These are used for sorting on disk. The sort on disk code needs to know how
             // many elements are in each bucket.
             var table_sizes = new List<ulong> {0, 0, 0, 0, 0, 0, 0, 0};
-            object sort_manager_mutex = new();
+            ManualResetEvent[] completion = new ManualResetEvent[num_threads];
 
 #if !SKIPF1
             {
@@ -61,15 +61,12 @@ namespace Chiapos.Dotnet
                 for (int i = 0; i < num_threads; i++)
                 {
                     var index = i;
-                    var thread = new Thread(() => F1thread(index, k, id, sort_manager_mutex));
-                    threads.Add(thread);
-                    thread.Start();
+                    completion[i] = new ManualResetEvent(false);
+                    ThreadPool.QueueUserWorkItem(_ => F1thread(index, k, id, completion[index]));
                 }
 
-                foreach (var thread in threads)
-                {
-                    thread.Join();
-                }
+                ManualResetEvent.WaitAll(completion);
+
                 // end of parallel execution
             }
 
@@ -221,7 +218,7 @@ namespace Chiapos.Dotnet
             return table_sizes;
         }
 
-        void F1thread(int index, byte k, byte[] id, object syncRoot)
+        void F1thread(int index, byte k, byte[] id, ManualResetEvent completion)
         {
             uint entry_size_bytes = 16;
             ulong max_value = 1UL << k;
@@ -270,6 +267,8 @@ namespace Chiapos.Dotnet
                             (int) entry_size_bytes));
                 }
             }
+
+            completion.Set();
         }
 
         void phase1_thread(ThreadData ptd)
