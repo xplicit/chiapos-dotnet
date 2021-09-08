@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using Mono.Options;
 
 namespace Chiapos.Dotnet
@@ -50,6 +51,9 @@ namespace Chiapos.Dotnet
             };
 
             var extra = p.Parse(args);
+            
+            ThreadPool.GetAvailableThreads(out int workerThreads, out int ioThreads);
+            Console.WriteLine($"Available threads: worker={workerThreads}, ioThreads={ioThreads}");
             
             DiskPlotter plotter = new DiskPlotter();
             plotter.CreatePlotDisk(
