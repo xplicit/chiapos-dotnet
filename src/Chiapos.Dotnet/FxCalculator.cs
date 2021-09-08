@@ -15,7 +15,7 @@ namespace Chiapos.Dotnet
         byte k_;
         byte table_index_;
         private List<rmap_item> rmap = Enumerable.Range(0, Constants.kBC).Select(_ => new rmap_item()).ToList();
-        List<ushort> rmap_clean = new();
+        List<ushort> rmap_clean = new(10000);
 
         private class rmap_item
         {
@@ -66,12 +66,12 @@ namespace Chiapos.Dotnet
         {
         }
 
+        byte[] input_bytes = new byte[64];
+        byte[] hash_bytes = new byte[32];
         // Performs one evaluation of the f function.
         public ValueTuple<Bits, Bits> CalculateBucket(Bits y1, Bits L, Bits R)
         {
             Bits input;
-            byte[] input_bytes = new byte[64];
-            byte[] hash_bytes = new byte[32];
             using var hasher = Blake3.Hasher.New();
             ulong f;
             Bits c = null;
@@ -151,29 +151,29 @@ namespace Chiapos.Dotnet
             {
                 int r_y = (int) (bucket_R[pos_R].y - remove);
 
-                if (rmap[r_y].count == 0)
+                var rmap_ry = rmap[r_y];
+                
+                if (rmap_ry.count == 0)
                 {
-                    rmap[r_y].pos = (ushort) pos_R;
+                    rmap_ry.pos = (ushort) pos_R;
                 }
 
-                rmap[r_y].count++;
+                rmap_ry.count++;
                 rmap_clean.Add((ushort) r_y);
             }
 
             ulong remove_y = remove - Constants.kBC;
-            for (int pos_L = 0; pos_L < bucket_L.Count; pos_L++)
+            for (ushort pos_L = 0; pos_L < bucket_L.Count; pos_L++)
             {
                 ulong r = bucket_L[pos_L].y - remove_y;
                 for (byte i = 0; i < Constants.kExtraBitsPow; i++)
                 {
                     ushort r_target = L_targets[parity, r, i];
-                    for (ushort j = 0; j < rmap[r_target].count; j++)
+                    var rmap_target = rmap[r_target];
+                    for (ushort j = 0; j < rmap_target.count; j++)
                     {
-                        if (idx_L != null)
-                        {
-                            idx_L[idx_count] = (ushort) pos_L;
-                            idx_R[idx_count] = (ushort) (rmap[r_target].pos + j);
-                        }
+                        idx_L[idx_count] = pos_L;
+                        idx_R[idx_count] = (ushort)(rmap_target.pos + j);
 
                         idx_count++;
                     }
