@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Linq;
 using Dirichlet.Numerics;
 using NUnit.Framework;
 
@@ -545,6 +546,34 @@ namespace Chiapos.Dotnet.Tests
             //17107438075371556197
             var expected = new byte[] { 0xED, 0x69, 0xD4, 0x4A, 0x5B, 0x83, 0x8D, 0x65, 0xA9, 0x52, 0x1D, 0x03, 0x00 };
             AssertBitsArray(actual, expected, 100);
+        }
+
+        [Test]
+        public void ParkBits_CanDoToBytes_With22Bits()
+        {
+            int parkBitsLength = 22;
+            ulong mask = (1UL << parkBitsLength) - 1;
+            ulong[] values = new ulong[1024];
+
+            Random rnd = new Random(10);
+            for (int i = 0; i < values.Length; i++)
+            {
+                values[i] = (ulong)rnd.Next() & mask;
+            }
+
+            ParkBits parkBits = new ParkBits();
+            foreach (var stub in values)
+            {
+                parkBits.AppendValue(stub, parkBitsLength);
+            }
+
+            byte[] expected = new byte[parkBitsLength * values.Length / 8 + 8];
+            parkBits.ToBytes(expected);
+
+            byte[] actual = new byte[parkBitsLength * values.Length / 8 + 8];
+            ParkBits.ToBytes(values, parkBitsLength, actual);
+            
+            Assert.That(actual.SequenceEqual(expected));
         }
         
         private void AssertBitsArray(Bits actual, byte[] expectedArray, int expectedLength)

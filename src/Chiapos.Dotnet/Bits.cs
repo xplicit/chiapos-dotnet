@@ -11,11 +11,11 @@ namespace Chiapos.Dotnet
         private ulong[] m_array;
         private int m_length;
         
-        private const int BitsPerInt64 = 64;
-        private const int BitsPerByte = 8;
+        protected const int BitsPerInt64 = 64;
+        protected const int BitsPerByte = 8;
 
-        private const int BitShiftPerInt64 = 6;
-        private const int BitShiftPerByte = 3;
+        protected const int BitShiftPerInt64 = 6;
+        protected const int BitShiftPerByte = 3;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetInt64ArrayLengthFromBitLength(int n)

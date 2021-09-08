@@ -40,13 +40,10 @@ void WriteParkToFile(
     index = index.Slice(EntrySizes.CalculateLinePointSize(k));
 
     // We use ParkBits instead of Bits since it allows storing more data
-    ParkBits park_stubs_bits = new ParkBits();
-    foreach (ulong stub in park_stubs) {
-        park_stubs_bits.AppendValue(stub, (k - Constants.kStubMinusBits));
-    }
+    int park_stubs_bits_length = ParkBits.ToBytes(park_stubs, (k - Constants.kStubMinusBits), 
+        park_buffer.AsSpan(park_buffer.Length - index.Length));
     int stubs_size = EntrySizes.CalculateStubsSize(k);
-    int stubs_valid_size = Util.Cdiv(park_stubs_bits.Length, 8);
-    park_stubs_bits.ToBytes(park_buffer, park_buffer.Length - index.Length);
+    int stubs_valid_size = Util.Cdiv(park_stubs_bits_length, 8);
     index.Slice((int)stubs_valid_size, stubs_size - stubs_valid_size).Fill(0);
     index = index.Slice(stubs_size);
 
