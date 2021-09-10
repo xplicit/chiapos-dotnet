@@ -29,11 +29,11 @@ Time in seconds
 | Phase   |    master   | original  | ProofOfSpace  |
 |---------|-------------|-----------|---------------|
 | F1      |    0.515    |    0.546  |    2.508      |
-| Phase1  |  154        |  226      |   56.7        |
+| Phase1  |  146        |  226      |   56.7        |
 | Phase2  |   20        |  205      |   10.5        |
 | Phase3  |  106        |  107      |   35.4        |
 | Phase4  |    8.53     |    8.66   |    2.1        |
-| Total   |  290        |  548      |  104.7        |
+| Total   |  280        |  548      |  104.7        |
 
 Legend:
    - master   - current development in `master` branch
