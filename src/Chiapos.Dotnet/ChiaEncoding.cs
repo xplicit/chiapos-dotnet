@@ -24,7 +24,7 @@ namespace Chiapos.Dotnet
                 else
                     b /= 2;
 
-                return (ulong) a * b;
+                return (UInt128) a * b;
             }
 
             // Encodes two max k bit values into one max 2k bit value. This can be thought of
