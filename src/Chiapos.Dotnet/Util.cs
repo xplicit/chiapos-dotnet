@@ -37,22 +37,6 @@ namespace Chiapos.Dotnet
             return tmp;
         }
 
-        public static ulong SliceInt64FromBytesOld(ReadOnlySpan<byte> bytes, uint start_bit, uint num_bits)
-        {
-            ulong tmp;
-            uint index = 0;
-
-            if (start_bit + num_bits > 64) {
-                index = start_bit / 8;
-                start_bit %= 8;
-            }
-
-            tmp = EightBytesToInt(bytes.Slice((int)index));
-            tmp <<= (int)start_bit;
-            tmp >>= 64 - (int)num_bits;
-            return tmp;
-        }
-        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong SliceInt64FromBytesFull(ReadOnlySpan<byte> bytes, uint start_bit, uint num_bits)
         {
@@ -93,15 +77,7 @@ namespace Chiapos.Dotnet
             BinaryPrimitives.TryWriteUInt64BigEndian(result.Slice(8, 8), input.S0);
         }
 
-        public static void IntTo16BytesOld(Span<byte> result, UInt128 input)
-        {
-            ulong r = SwapBytes(input.S1);
-            BitConverter.TryWriteBytes(result, r);
-
-            r = SwapBytes(input.S0);
-            BitConverter.TryWriteBytes(result[8..], r);
-        }
-        
+       
         // Used to encode deltas object size
         public static void IntToTwoBytesLE(Span<byte> result, ushort input)
         {
@@ -109,17 +85,6 @@ namespace Chiapos.Dotnet
             //BitConverter.TryWriteBytes(result, input);
             result[0] = (byte)(input & 0xff);
             result[1] = (byte)(input >> 8);
-        }
-
-
-        public static ulong SwapBytes(ulong x)
-        {
-            // swap adjacent 32-bit blocks
-            x = (x >> 32) | (x << 32);
-            // swap adjacent 16-bit blocks
-            x = ((x & 0xFFFF0000FFFF0000) >> 16) | ((x & 0x0000FFFF0000FFFF) << 16);
-            // swap adjacent 8-bit blocks
-            return ((x & 0xFF00FF00FF00FF00) >> 8) | ((x & 0x00FF00FF00FF00FF) << 8);
         }
         
         // The number of memory entries required to do the custom SortInMemory algorithm, given the
@@ -153,44 +118,6 @@ namespace Chiapos.Dotnet
                 return left_arr.Slice(1).SequenceCompareTo(right_arr.Slice(1));
             
             for (int i = 1; i < left_arr.Length; i++)
-            {
-                if (left_arr[i] != right_arr[i])
-                    return left_arr[i] - right_arr[i];
-            }
-
-            return 0;
-        }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int MemCmpBits_Span(ReadOnlySpan<byte> left_arr, ReadOnlySpan<byte> right_arr, int len, int bits_begin)
-        {
-            int start_byte = bits_begin >> 3;
-            left_arr = left_arr.Slice(start_byte, len - start_byte);
-            right_arr = right_arr.Slice(start_byte, len - start_byte);
-            
-            byte mask = (byte) ((1 << (8 - (bits_begin & 7))) - 1);
-            if ((left_arr[0] & mask) != (right_arr[0] & mask))
-            {
-                return (left_arr[0] & mask) - (right_arr[0] & mask);
-            }
-
-            if (len == 1)
-                return 0;
-
-            return left_arr.Slice(1).SequenceCompareTo(right_arr.Slice(1));
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        public static int MemCmpBits_Original(ReadOnlySpan<byte> left_arr, ReadOnlySpan<byte> right_arr, int len, int bits_begin)
-        {
-            int start_byte = bits_begin / 8;
-            byte mask = (byte) ((1 << (8 - (bits_begin % 8))) - 1);
-            if ((left_arr[start_byte] & mask) != (right_arr[start_byte] & mask))
-            {
-                return (left_arr[start_byte] & mask) - (right_arr[start_byte] & mask);
-            }
-
-            for (int i = start_byte + 1; i < len; i++)
             {
                 if (left_arr[i] != right_arr[i])
                     return left_arr[i] - right_arr[i];

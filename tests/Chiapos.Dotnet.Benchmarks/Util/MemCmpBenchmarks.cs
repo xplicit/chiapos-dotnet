@@ -29,8 +29,14 @@ namespace Chiapos.Dotnet.Benchmarks
             MemCmpBits_Span(a, b, 9, 7);
         }
         
+        [Benchmark]
+        public void Current()
+        {
+            MemCmpBits(a, b, 9, 7);
+        }
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int MemCmpBits_Original(ReadOnlySpan<byte> left_arr, ReadOnlySpan<byte> right_arr, int len, int bits_begin)
+        public static int MemCmpBits(ReadOnlySpan<byte> left_arr, ReadOnlySpan<byte> right_arr, int len, int bits_begin)
         {
             int start_byte = bits_begin >> 3;
             byte mask = (byte) ((1 << (8 - (bits_begin & 7))) - 1);
@@ -74,6 +80,24 @@ namespace Chiapos.Dotnet.Benchmarks
             return left_arr.Slice(1).SequenceCompareTo(right_arr.Slice(1));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        public static int MemCmpBits_Original(ReadOnlySpan<byte> left_arr, ReadOnlySpan<byte> right_arr, int len, int bits_begin)
+        {
+            int start_byte = bits_begin / 8;
+            byte mask = (byte) ((1 << (8 - (bits_begin % 8))) - 1);
+            if ((left_arr[start_byte] & mask) != (right_arr[start_byte] & mask))
+            {
+                return (left_arr[start_byte] & mask) - (right_arr[start_byte] & mask);
+            }
+
+            for (int i = start_byte + 1; i < len; i++)
+            {
+                if (left_arr[i] != right_arr[i])
+                    return left_arr[i] - right_arr[i];
+            }
+
+            return 0;
+        }
         
         /*
         static unsafe int EqualBytesLongUnrolled (ReadOnlySpan<byte> left_arr, ReadOnlySpan<byte> right_arr, int len, int bits_begin)
