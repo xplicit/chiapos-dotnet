@@ -174,7 +174,7 @@ namespace Chiapos.Dotnet
             return startBit + bitLength;
         }
         
-        public static int WriteBytesToBuffer(Span<byte> dstBuffer, int startBit, ulong value, int bitLength)
+        public static int WriteBytesToBufferOld(Span<byte> dstBuffer, int startBit, ulong value, int bitLength)
         {
             var dstSpan = dstBuffer.Slice(startBit >> BitShiftPerByte,
                 GetByteArrayLengthFromBitLength(startBit + bitLength) - (startBit >> BitShiftPerByte));
@@ -187,6 +187,47 @@ namespace Chiapos.Dotnet
             BinaryPrimitives.WriteUInt64BigEndian(srcBuffer, value << (BitsPerInt64 - bitLength));
             return WriteBytesToBuffer(dstBuffer, startBit, srcBuffer, bitLength);
         }
+        
+        public static int WriteBytesToBuffer(Span<byte> dstBuffer, int startBit, ulong value, int bitLength)
+        {
+            var dstSpan = dstBuffer.Slice(startBit >> BitShiftPerByte,
+                GetByteArrayLengthFromBitLength(startBit + bitLength) - (startBit >> BitShiftPerByte));
+
+            int currentBit = startBit;
+            int startShift = startBit & BitShiftMask;
+            int bitLengthShift = bitLength & BitShiftMask;
+
+            if (startShift == 0)
+            {
+                //56+bits. We can write the whole ulong
+                if (bitLength > BitsPerInt64 - BitsPerByte)
+                {
+                    BinaryPrimitives.WriteUInt64BigEndian(dstSpan, value << (BitsPerInt64 - bitLength));
+                }
+                else
+                {
+                    int byteShift = bitLength - BitsPerByte;
+                    int dstIndex = 0;
+                    int length = bitLength;
+
+                    while (length > BitsPerByte)
+                    {
+                        dstSpan[dstIndex++] = (byte)(value >> byteShift);
+                        byteShift -= BitsPerByte;
+                        length -= BitsPerByte;
+                    }
+
+                    dstSpan[dstIndex] = (byte)(value << (BitsPerByte - length));
+                }
+                
+                return startBit + bitLength;
+            }
+
+            Span<byte> srcBuffer = stackalloc byte[8];
+            BinaryPrimitives.WriteUInt64BigEndian(srcBuffer, value << (BitsPerInt64 - bitLength));
+            return WriteBytesToBuffer(dstBuffer, startBit, srcBuffer, bitLength);
+        }
+
 
         public static Bits2 operator +(Bits2 a, Bits2 b)
         {

@@ -172,8 +172,8 @@ namespace Chiapos.Dotnet.Tests
             byte size = sizes[t - 2];
             FxCalculator fcalc = new FxCalculator(k, t);
 
-            var res = fcalc.CalculateBucket(
-                new Bits2(y1, k + Constants.kExtraBits), new Bits2(L, k * size), new Bits2(R, k * size));
+            var res = fcalc.CalculateBucket(y1, k + Constants.kExtraBits,
+                new Bits2(L, k * size), new Bits2(R, k * size));
             Assert.That(res.Item1.GetValue() == y);
             if (c != 0)
             {

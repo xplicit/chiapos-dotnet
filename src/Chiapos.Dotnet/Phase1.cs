@@ -571,7 +571,7 @@ namespace Chiapos.Dotnet
                                 R_entry.used = true;
                                 // Computes the output pair (fx, new_metadata)
                                 ValueTuple<Bits2, Bits2> f_output = f.CalculateBucket(
-                                    new Bits2(L_entry.y, k + Constants.kExtraBits),
+                                    L_entry.y, k + Constants.kExtraBits,
                                     L_entry.left_metadata,
                                     R_entry.left_metadata);
                                 future_entries_to_write.Add(

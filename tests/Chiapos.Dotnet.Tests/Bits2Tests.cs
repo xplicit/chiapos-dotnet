@@ -215,6 +215,7 @@ namespace Chiapos.Dotnet.Tests
             ulong expected = 0x6322_3df1_f7ec_dcbe;
             Bits2 x = Bits2.FromUInt128(new UInt128(expected),64);
             var actual = x.GetValue();
+            Assert.That(actual, Is.EqualTo(expected));
 
             var v = 0x01020408;
             x = Bits2.FromUInt128(new UInt128(v), 32);

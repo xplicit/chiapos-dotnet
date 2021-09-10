@@ -69,7 +69,7 @@ namespace Chiapos.Dotnet
         byte[] input_bytes = new byte[64];
         byte[] hash_bytes = new byte[32];
         // Performs one evaluation of the f function.
-        public ValueTuple<Bits2, Bits2> CalculateBucket(Bits2 y1, Bits2 L, Bits2 R)
+        public ValueTuple<Bits2, Bits2> CalculateBucket(ulong y1, int y1_bits, Bits2 L, Bits2 R)
         {
             using var hasher = Blake3.Hasher.New();
             ulong f;
@@ -85,7 +85,7 @@ namespace Chiapos.Dotnet
             }
             
             //input = y1 + L + R
-            int input_length = Bits2.WriteBytesToBuffer(input_bytes, 0, y1.GetBuffer(), y1.Length);
+            int input_length = Bits2.WriteBytesToBuffer(input_bytes, 0, y1, y1_bits);
             input_length = Bits2.WriteBytesToBuffer(input_bytes, input_length, L.GetBuffer(), L.Length);
             input_length = Bits2.WriteBytesToBuffer(input_bytes, input_length, R.GetBuffer(), R.Length);
 
@@ -94,8 +94,6 @@ namespace Chiapos.Dotnet
             hasher.Update(new ReadOnlySpan<byte>(input_bytes, 0, Util.Cdiv(input_length, 8)));
             //blake3_hasher_finalize(hasher, hash_bytes, hash_bytes.Length * sizeof(byte));
             hasher.Finalize(hash_bytes);
-
-            f = Util.EightBytesToInt(hash_bytes) >> (64 - (k_ + Constants.kExtraBits));
 
             if (table_index_ < 4)
             {
@@ -115,7 +113,7 @@ namespace Chiapos.Dotnet
                     
             }
 
-            return (new Bits2(f, k_ + Constants.kExtraBits), c);
+            return (new Bits2(hash_bytes, 0, k_ + Constants.kExtraBits), c);
         }
 
         // Given two buckets with entries (y values), computes which y values match, and returns a list
