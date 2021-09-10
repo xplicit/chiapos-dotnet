@@ -18,7 +18,7 @@ namespace Chiapos.Dotnet.Disks
         // the file offset the write buffer should be written back to
         // the write buffer is *only* for contiguous and sequential writes
         ulong write_buffer_start_ = ulong.MaxValue;
-        byte[] write_buffer_;
+        byte[] write_buffer_ = new byte[write_cache];
         ulong write_buffer_size_ = 0;
 
         public BufferedDisk(FileDisk disk, ulong filesize)
@@ -85,7 +85,6 @@ namespace Chiapos.Dotnet.Disks
 
         public void Write(ulong begin, ReadOnlySpan<byte> memcache)
         {
-            NeedWriteCache();
             if (begin == write_buffer_start_ + write_buffer_size_)
             {
                 if (write_buffer_size_ + (ulong)memcache.Length <= write_cache)
@@ -117,24 +116,15 @@ namespace Chiapos.Dotnet.Disks
             read_buffer_start_ = ulong.MaxValue;
             read_buffer_size_ = 0;
         }
-
-        private void NeedWriteCache()
-        {
-            if (write_buffer_ != null) 
-                return;
-            
-            write_buffer_ = new byte[write_cache];
-            write_buffer_start_ = ulong.MaxValue;
-            write_buffer_size_ = 0;
-        }
         
         public void FreeMemory()
         {
             FlushCache();
 
             read_buffer_ = null;
-            write_buffer_ = null;
             read_buffer_size_ = 0;
+
+            write_buffer_start_ = ulong.MaxValue;
             write_buffer_size_ = 0;
         }
 
