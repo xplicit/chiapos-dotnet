@@ -135,7 +135,53 @@ namespace Chiapos.Dotnet
         /*
          * Like memcmp, but only compares starting at a certain bit.
          */
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int MemCmpBits(ReadOnlySpan<byte> left_arr, ReadOnlySpan<byte> right_arr, int len, int bits_begin)
+        {
+            int start_byte = bits_begin >> 3;
+            byte mask = (byte) ((1 << (8 - (bits_begin & 7))) - 1);
+            left_arr = left_arr.Slice(start_byte, len - start_byte);
+            right_arr = right_arr.Slice(start_byte, len - start_byte);
+
+            if ((left_arr[0] & mask) != (right_arr[0] & mask))
+            {
+                return (left_arr[0] & mask) - (right_arr[0] & mask);
+            }
+            
+            //According to benchmarking there is a time win when array length is 12 or more
+            if (left_arr.Length > 11)
+                return left_arr.Slice(1).SequenceCompareTo(right_arr.Slice(1));
+            
+            for (int i = 1; i < left_arr.Length; i++)
+            {
+                if (left_arr[i] != right_arr[i])
+                    return left_arr[i] - right_arr[i];
+            }
+
+            return 0;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int MemCmpBits_Span(ReadOnlySpan<byte> left_arr, ReadOnlySpan<byte> right_arr, int len, int bits_begin)
+        {
+            int start_byte = bits_begin >> 3;
+            left_arr = left_arr.Slice(start_byte, len - start_byte);
+            right_arr = right_arr.Slice(start_byte, len - start_byte);
+            
+            byte mask = (byte) ((1 << (8 - (bits_begin & 7))) - 1);
+            if ((left_arr[0] & mask) != (right_arr[0] & mask))
+            {
+                return (left_arr[0] & mask) - (right_arr[0] & mask);
+            }
+
+            if (len == 1)
+                return 0;
+
+            return left_arr.Slice(1).SequenceCompareTo(right_arr.Slice(1));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        public static int MemCmpBits_Original(ReadOnlySpan<byte> left_arr, ReadOnlySpan<byte> right_arr, int len, int bits_begin)
         {
             int start_byte = bits_begin / 8;
             byte mask = (byte) ((1 << (8 - (bits_begin % 8))) - 1);
