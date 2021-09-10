@@ -11,7 +11,7 @@ namespace Chiapos.Dotnet
         // Max matches a single entry can have, used for hardcoded memory allocation
         public const uint kMaxMatchesSingleEntry = 30;
         public const uint kMinBuckets = 16;
-        public const uint kMaxBuckets = 128;
+        public const uint kMaxBuckets = 256;
 
         // During backprop and compress, the write pointer is ahead of the read pointer
         // Note that the large the offset, the higher these values must be
