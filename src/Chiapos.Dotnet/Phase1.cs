@@ -132,7 +132,7 @@ namespace Chiapos.Dotnet
                 var td = new ThreadData[num_threads];
                 var mutex = new AutoResetEvent[num_threads];
 
-                var phase1_num_threads = 1;
+                var phase1_num_threads = num_threads;
                 var threads = new List<Thread>();
 
                 for (int i = 0; i < phase1_num_threads; i++)
