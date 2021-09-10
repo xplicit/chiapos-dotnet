@@ -97,7 +97,15 @@ public Phase3Results RunPhase3(
 {
     byte pos_size = k;
     byte line_point_size = (byte)(2 * k - 1);
+    
+    // Sort key is k bits for all tables. For table 7 it is just y, which
+    // is k bits, and for all other tables the number of entries does not
+    // exceed 0.865 * 2^k on average.
+    uint right_sort_key_size = k;
 
+    Bits2 tmpWriteBits = new Bits2(line_point_size + (int)right_sort_key_size);
+    Span<byte> tmpWriteBuffer = tmpWriteBits.GetBuffer().AsSpan();
+    
     var final_table_begin_pointers = new List<ulong>(Enumerable.Repeat<ulong>(0, 12));
     final_table_begin_pointers[1] = header_size;
 
@@ -138,11 +146,6 @@ public Phase3Results RunPhase3(
 
         IDisk right_disk = res2.disk_for_table(table_index + 1);
         IDisk left_disk = res2.disk_for_table(table_index);
-
-        // Sort key is k bits for all tables. For table 7 it is just y, which
-        // is k bits, and for all other tables the number of entries does not
-        // exceed 0.865 * 2^k on average.
-        uint right_sort_key_size = k;
 
         int left_entry_size_bytes = EntrySizes.GetMaxEntrySize(k, (byte)table_index, false);
         int p2_entry_size_bytes = EntrySizes.GetKeyPosOffsetSize(k);
@@ -298,11 +301,13 @@ public Phase3Results RunPhase3(
                             Environment.Exit(1);
                         }
                     }
-                    Bits to_write = new Bits(line_point, line_point_size);
-                    to_write.AppendValue(old_sort_keys[write_pointer_pos % Constants.kReadMinusWrite, counter],
+
+                    int bitsWritten = Bits2.WriteBytesToBuffer(tmpWriteBuffer, 0, line_point, line_point_size);
+                    Bits2.WriteBytesToBuffer(tmpWriteBuffer, bitsWritten,
+                        old_sort_keys[write_pointer_pos % Constants.kReadMinusWrite, counter],
                         (int)right_sort_key_size);
 
-                    R_sort_manager.AddToCache(to_write);
+                    R_sort_manager.AddToCache(tmpWriteBuffer);
                     total_r_entries++;
                 }
             }

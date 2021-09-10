@@ -227,7 +227,23 @@ namespace Chiapos.Dotnet
             BinaryPrimitives.WriteUInt64BigEndian(srcBuffer, value << (BitsPerInt64 - bitLength));
             return WriteBytesToBuffer(dstBuffer, startBit, srcBuffer, bitLength);
         }
+        
+        public static int WriteBytesToBuffer(Span<byte> dstBuffer, int startBit, UInt128 value, int bitLength)
+        {
+            int bitShift;
+            
+            if (bitLength > BitsPerInt64)
+            {
+                bitShift = WriteBytesToBuffer(dstBuffer, startBit, value.S1, bitLength - BitsPerInt64);
+                bitShift = WriteBytesToBuffer(dstBuffer, bitShift, value.S0, BitsPerInt64);
+            }
+            else
+            {
+                bitShift = WriteBytesToBuffer(dstBuffer, startBit, value.S0, bitLength);
+            }
 
+            return bitShift;
+        }
 
         public static Bits2 operator +(Bits2 a, Bits2 b)
         {
