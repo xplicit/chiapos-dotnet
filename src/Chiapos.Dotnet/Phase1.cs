@@ -348,8 +348,8 @@ namespace Chiapos.Dotnet
                 ulong R_position_base = 0;
                 ulong newlpos = 0;
                 ulong newrpos = 0;
-                List<Tuple<PlotEntry, PlotEntry, ValueTuple<Bits, Bits>>> current_entries_to_write = new();
-                List<Tuple<PlotEntry, PlotEntry, ValueTuple<Bits, Bits>>> future_entries_to_write = new();
+                List<Tuple<PlotEntry, PlotEntry, ValueTuple<Bits2, Bits2>>> current_entries_to_write = new();
+                List<Tuple<PlotEntry, PlotEntry, ValueTuple<Bits2, Bits2>>> future_entries_to_write = new();
                 List<PlotEntry> not_dropped = new(); // Pointers are stored to avoid copying entries
 
                 if (pos == 0)
@@ -388,8 +388,7 @@ namespace Chiapos.Dotnet
                     {
                         end_of_table = true;
                         left_entry.y = 0;
-                        left_entry.left_metadata = 0;
-                        left_entry.right_metadata = 0;
+                        left_entry.left_metadata = null;
                         left_entry.used = false;
                     }
                     else
@@ -544,7 +543,7 @@ namespace Chiapos.Dotnet
                                     // Rewrite left entry with just pos and offset, to reduce working space
                                     ulong new_left_entry;
                                     if (table_index == 1)
-                                        new_left_entry = (ulong) entry.left_metadata;
+                                        new_left_entry = entry.left_metadata.GetValue();
                                     else
                                         new_left_entry = entry.read_posoffset;
                                     new_left_entry <<=
@@ -571,27 +570,12 @@ namespace Chiapos.Dotnet
                                 // Sets the R entry to used so that we don't drop in next iteration
                                 R_entry.used = true;
                                 // Computes the output pair (fx, new_metadata)
-                                if (metadata_size <= 128)
-                                {
-                                    ValueTuple<Bits, Bits> f_output = f.CalculateBucket(
-                                        new Bits(L_entry.y, k + Constants.kExtraBits),
-                                        new Bits(L_entry.left_metadata, metadata_size),
-                                        new Bits(R_entry.left_metadata, metadata_size));
-                                    future_entries_to_write.Add(
-                                        new Tuple<PlotEntry, PlotEntry, (Bits, Bits)>(L_entry, R_entry, f_output));
-                                }
-                                else
-                                {
-                                    // Metadata does not fit into 128 bits
-                                    ValueTuple<Bits, Bits> f_output = f.CalculateBucket(
-                                        new Bits(L_entry.y, k + Constants.kExtraBits),
-                                        new Bits(L_entry.left_metadata, 128)
-                                            .AppendValue(L_entry.right_metadata, metadata_size - 128),
-                                        new Bits(R_entry.left_metadata, 128)
-                                            .AppendValue(R_entry.right_metadata, metadata_size - 128));
-                                    future_entries_to_write.Add(
-                                        new Tuple<PlotEntry, PlotEntry, (Bits, Bits)>(L_entry, R_entry, f_output));
-                                }
+                                ValueTuple<Bits2, Bits2> f_output = f.CalculateBucket(
+                                    new Bits2(L_entry.y, k + Constants.kExtraBits),
+                                    L_entry.left_metadata,
+                                    R_entry.left_metadata);
+                                future_entries_to_write.Add(
+                                    new Tuple<PlotEntry, PlotEntry, (Bits2, Bits2)>(L_entry, R_entry, f_output));
                             }
 
                             // At this point, future_entries_to_write contains the matches of buckets L
@@ -639,18 +623,17 @@ namespace Chiapos.Dotnet
                                 if (bStripeStartPair)
                                 {
                                     // We only need k instead of k + kExtraBits bits for the last table
-                                    Bits new_entry = table_index + 1 == 7
-                                        ? (Bits) f_output.Item1.Slice(0, k)
-                                        : f_output.Item1;
-                                    
-                                    // Position in the previous table
-                                    new_entry.AppendValue(newlpos, pos_size);
-                                    new_entry.AppendValue(newrpos - newlpos, (int) Constants.kOffsetSize);
-                                    // New metadata which will be used to compute the next f
-                                    new_entry += f_output.Item2;
-
-                                    new_entry.ToBytes(right_writer_buf,
-                                        (int) (right_writer_count * right_entry_size_bytes));
+                                    var dstBuffer = right_writer_buf.AsSpan().Slice((int)(right_writer_count * right_entry_size_bytes));
+                                    int bits = Bits2.WriteBytesToBuffer(dstBuffer, 0,
+                                        f_output.Item1.GetBuffer(), table_index + 1 == 7 ? k : f_output.Item1.Length);
+                                    bits = Bits2.WriteBytesToBuffer(dstBuffer, bits, newlpos, pos_size);
+                                    bits = Bits2.WriteBytesToBuffer(dstBuffer, bits, newrpos - newlpos,
+                                        (int)Constants.kOffsetSize);
+                                    if (f_output.Item2 != null)
+                                    {
+                                        bits = Bits2.WriteBytesToBuffer(dstBuffer, bits, f_output.Item2.GetBuffer(),
+                                            f_output.Item2.Length);
+                                    }
                                     right_writer_count++;
                                 }
                             }
@@ -768,14 +751,14 @@ namespace Chiapos.Dotnet
         byte metadata_size,
         byte pos_size)
         {
-            PlotEntry left_entry = new PlotEntry {y = 0, read_posoffset = 0, left_metadata = 0, right_metadata = 0};
+            PlotEntry left_entry = new PlotEntry {y = 0, read_posoffset = 0, left_metadata = null};
 
             uint ysize = (table_index == 7) ? k : k + (uint)Constants.kExtraBits;
 
             if (table_index == 1) {
                 // For table 1, we only have y and metadata
                 left_entry.y = Util.SliceInt64FromBytes(left_buf, 0, k + (uint)Constants.kExtraBits);
-                left_entry.left_metadata = Util.SliceInt64FromBytes(left_buf, k + (uint)Constants.kExtraBits, metadata_size);
+                left_entry.left_metadata = new Bits2(left_buf, (int)(k + (uint)Constants.kExtraBits), metadata_size);
             } else {
                 // For tables 2-6, we we also have pos and offset. We need to read this because
                 // this entry will be written again to the table without the y (and some entries
@@ -783,16 +766,8 @@ namespace Chiapos.Dotnet
                 left_entry.y = Util.SliceInt64FromBytes(left_buf, 0, ysize);
                 left_entry.read_posoffset =
                     Util.SliceInt64FromBytes(left_buf, ysize, pos_size + Constants.kOffsetSize);
-                if (metadata_size <= 128) {
-                    left_entry.left_metadata =
-                        Util.SliceInt128FromBytes(left_buf, ysize + pos_size + Constants.kOffsetSize, metadata_size);
-                } else {
-                    // Large metadatas that don't fit into 128 bits. (k > 32).
-                    left_entry.left_metadata =
-                        Util.SliceInt128FromBytes(left_buf, ysize + pos_size + Constants.kOffsetSize, 128);
-                    left_entry.right_metadata = Util.SliceInt128FromBytes(
-                        left_buf, ysize + pos_size + Constants.kOffsetSize + 128, (uint)metadata_size - 128);
-                }
+                left_entry.left_metadata =
+                    new Bits2(left_buf, (int)(ysize + pos_size + Constants.kOffsetSize), metadata_size);
             }
             return left_entry;
         }

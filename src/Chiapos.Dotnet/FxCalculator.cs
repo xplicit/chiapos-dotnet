@@ -69,28 +69,29 @@ namespace Chiapos.Dotnet
         byte[] input_bytes = new byte[64];
         byte[] hash_bytes = new byte[32];
         // Performs one evaluation of the f function.
-        public ValueTuple<Bits, Bits> CalculateBucket(Bits y1, Bits L, Bits R)
+        public ValueTuple<Bits2, Bits2> CalculateBucket(Bits2 y1, Bits2 L, Bits2 R)
         {
-            Bits input;
             using var hasher = Blake3.Hasher.New();
             ulong f;
-            Bits c = null;
+            Bits2 c = null;
 
             if (table_index_ < 4)
             {
                 c = L + R;
-                input = y1 + c;
             }
             else
             {
-                input = y1 + L + R;
+                //just write data to input_bytes
             }
-
-            input.ToBytes(input_bytes);
+            
+            //input = y1 + L + R
+            int input_length = Bits2.WriteBytesToBuffer(input_bytes, 0, y1.GetBuffer(), y1.Length);
+            input_length = Bits2.WriteBytesToBuffer(input_bytes, input_length, L.GetBuffer(), L.Length);
+            input_length = Bits2.WriteBytesToBuffer(input_bytes, input_length, R.GetBuffer(), R.Length);
 
             //blake3_hasher_init(hasher);
             //blake3_hasher_update(hasher, input_bytes, Util.Cdiv(input.Length, 8));
-            hasher.Update(new ReadOnlySpan<byte>(input_bytes, 0, Util.Cdiv(input.Length, 8)));
+            hasher.Update(new ReadOnlySpan<byte>(input_bytes, 0, Util.Cdiv(input_length, 8)));
             //blake3_hasher_finalize(hasher, hash_bytes, hash_bytes.Length * sizeof(byte));
             hasher.Finalize(hash_bytes);
 
@@ -107,14 +108,14 @@ namespace Chiapos.Dotnet
                 byte end_bit = (byte) (k_ + Constants.kExtraBits + k_ * len);
                 byte end_byte = (byte) Util.Cdiv(end_bit, 8);
 
-                // TODO: proper support for partial bytes in Bits ctor
-                c = new Bits(new ReadOnlySpan<byte>(hash_bytes, start_byte, end_byte - start_byte),
-                    (end_byte - start_byte) * 8);
-
-                c = c.Slice((k_ + Constants.kExtraBits) % 8, end_bit - start_byte * 8);
+                c = new Bits2(new ReadOnlySpan<byte>(hash_bytes, start_byte, end_byte - start_byte),
+                    (k_ + Constants.kExtraBits) % 8,
+                    end_bit - start_byte * 8 - ((k_ + Constants.kExtraBits) % 8)
+                    );
+                    
             }
 
-            return (new Bits(f, k_ + Constants.kExtraBits), c);
+            return (new Bits2(f, k_ + Constants.kExtraBits), c);
         }
 
         // Given two buckets with entries (y values), computes which y values match, and returns a list

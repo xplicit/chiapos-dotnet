@@ -173,14 +173,13 @@ namespace Chiapos.Dotnet.Tests
             FxCalculator fcalc = new FxCalculator(k, t);
 
             var res = fcalc.CalculateBucket(
-                new Bits(y1, k + Constants.kExtraBits), new Bits(L, k * size), new Bits(R, k * size));
+                new Bits2(y1, k + Constants.kExtraBits), new Bits2(L, k * size), new Bits2(R, k * size));
             Assert.That(res.Item1.GetValue() == y);
             if (c != 0)
             {
                 Assert.That(res.Item2.GetValue() == c);
             }
         }
-
 
         bool CheckMatch(long yl, long yr)
         {
