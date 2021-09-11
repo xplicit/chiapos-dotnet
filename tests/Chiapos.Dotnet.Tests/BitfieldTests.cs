@@ -139,5 +139,12 @@ namespace Chiapos.Dotnet.Tests
             test_bitfield_size(BitfieldIndex.kIndexBucket);
             test_bitfield_size(BitfieldIndex.kIndexBucket + 1);
         }
+
+        [Test]
+        public void Bitfield_CanCreateLargeBitfield()
+        {
+            var Bitfield = new Bitfield(42933294610);
+            Assert.That(Bitfield.Length, Is.EqualTo(42933294610));
+        }
     }
 }

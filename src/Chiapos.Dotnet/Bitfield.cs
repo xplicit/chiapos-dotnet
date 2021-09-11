@@ -8,7 +8,7 @@ namespace Chiapos.Dotnet
     public class Bitfield
     {
         private ulong[] m_array;
-        private int m_length;
+        private ulong m_length;
         
         private const int BitsPerInt64 = 64;
         private const int BitsPerByte = 8;
@@ -19,10 +19,10 @@ namespace Chiapos.Dotnet
         public ulong Length => (ulong)m_length;
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int GetInt64ArrayLengthFromBitLength(int n)
+        private static int GetInt64ArrayLengthFromBitLength(ulong n)
         {
             Debug.Assert(n >= 0);
-            return (int)((uint)(n - 1 + (1 << BitShiftPerInt64)) >> BitShiftPerInt64);
+            return (int)((n - 1UL + (1UL << BitShiftPerInt64)) >> BitShiftPerInt64);
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -43,8 +43,8 @@ namespace Chiapos.Dotnet
         
         public Bitfield(ulong length)
         {
-            m_array = new ulong[GetInt64ArrayLengthFromBitLength((int)length)];
-            m_length = (int)length;
+            m_array = new ulong[(int)GetInt64ArrayLengthFromBitLength(length)];
+            m_length = length;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -68,11 +68,11 @@ namespace Chiapos.Dotnet
             int startIdx = (int)(startBit >> BitShiftPerInt64);
             int endIdx = (int)(endBit >> BitShiftPerInt64);
 
-            int result = 0;
+            ulong result = 0;
 
             while (startIdx != endIdx)
             {
-                result += BitOperations.PopCount(m_array[startIdx]);
+                result += (ulong)BitOperations.PopCount(m_array[startIdx]);
                 startIdx++;
             }
 
@@ -80,10 +80,10 @@ namespace Chiapos.Dotnet
             if (tail > 0)
             {
                 ulong mask = (1UL << tail) - 1;
-                result += BitOperations.PopCount(m_array[endIdx] & mask);
+                result += (ulong)BitOperations.PopCount(m_array[endIdx] & mask);
             }
 
-            return (ulong)result;
+            return result;
         }
 
         public void Clear()
