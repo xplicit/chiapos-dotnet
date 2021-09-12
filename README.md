@@ -15,7 +15,7 @@ Currently only Blake3 algorithm is implemented in Rust/C/Asm and used as a libra
 
 ## What is current state?
 
-Current state: porting is completed, currently verifying the correctness. k=25 plot generation is verified, next step to verify k=32 plot generation.
+Current state: porting is completed. Plot generation for k=25 and k=32 plot generation is verified. At now: time of plot generation optimization.
 
 ## Performance metrics
 
