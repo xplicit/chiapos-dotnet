@@ -22,18 +22,29 @@ Current state: porting is completed. Plot generation for k=25 and k=32 plot gene
 Ubuntu Linux 20.04, Intel Xeon Gold 6208U, 384GB RAM,
 RAM disk is used for tmp1/tmp2 and final dirs.
 
-#### k=25, r=32 Number of Threads: 32
+Time in seconds.
 
-Time in seconds
+#### k=25, r=32 Number of Threads: 32
 
 | Phase   |    master   | original  | ProofOfSpace  |
 |---------|-------------|-----------|---------------|
-| F1      |    0.515    |    0.546  |    2.508      |
-| Phase1  |  126        |  226      |   56.7        |
+| F1      |    0.559    |    0.546  |    2.508      |
+| Phase1  |  121        |  226      |   56.7        |
 | Phase2  |   20        |  205      |   10.5        |
-| Phase3  |  106        |  107      |   35.4        |
-| Phase4  |    9.12     |    8.66   |    2.1        |
-| Total   |  262        |  548      |  104.7        |
+| Phase3  |  101        |  107      |   35.4        |
+| Phase4  |    8.71     |    8.66   |    2.1        |
+| Total   |  250        |  548      |  104.7        |
+
+#### k=32, r=32 Number of Threads: 32
+
+| Phase   |    master   | commit 48960 | ProofOfSpace  |
+|---------|-------------|--------------|---------------|
+| F1      |       78    |       78     |    ?          |
+| Phase1  |     28891   |    28891     |    ?          |
+| Phase2  |      5617   |     5617     |    ?          |
+| Phase3  |     22108   |    22108     |    ?          |
+| Phase4  |      1812   |     1812     |    ?          |
+| Total   |     58430   |    58430     |    ?          |
 
 Legend:
    - master   - current development in `master` branch
