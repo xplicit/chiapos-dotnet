@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Chiapos.Dotnet.Disks;
 
@@ -330,6 +331,11 @@ namespace Chiapos.Dotnet
         public void Reset()
         {
         }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public byte GetBucketNumber(ulong value, int valueBitLength) =>
+            Util.GetBucketNumber(value, valueBitLength, (int)log_num_buckets_);
 
         public Span<byte> GetBuffer(byte bucketNumber)
         {

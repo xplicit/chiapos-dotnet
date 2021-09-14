@@ -369,8 +369,8 @@ public Phase3Results RunPhase3(
         // The final table will simply store the deltas between each line_point, in fixed space
         // groups(parks), with a checkpoint in each group.
         int added_to_cache = 0;
-        byte sort_key_shift = (byte)(128 - right_sort_key_size);
-        byte index_shift = (byte)(sort_key_shift - (k + (table_index == 6 ? 1 : 0)));
+        int index_size_bits = k + (table_index == 6 ? 1 : 0);
+        
         for (ulong index = 0; index < total_r_entries; index++) {
             right_reader_entry_buf = R_sort_manager.ReadEntry(right_reader);
             right_reader += (ulong)right_entry_size_bytes;
@@ -382,12 +382,12 @@ public Phase3Results RunPhase3(
                 Util.SliceInt64FromBytes(right_reader_entry_buf, line_point_size, right_sort_key_size);
 
             // Write the new position (index) and the sort key
-            UInt128 to_write = (UInt128)sort_key << sort_key_shift;
-            to_write |= (UInt128)index << index_shift;
-
-            var bytes = new Span<byte>(new byte[16]);
-            Util.IntTo16Bytes(bytes, to_write);
-            L_sort_manager.AddToCache(bytes);
+            byte bucketNumber = Util.GetBucketNumber(sort_key, (int)right_sort_key_size, L_sort_manager.BucketBits);
+            var buffer = L_sort_manager.GetBuffer(bucketNumber);
+            int bits = Bits2.WriteBytesToBuffer(buffer, 0, sort_key, (int)right_sort_key_size);
+            Bits2.WriteBytesToBuffer(buffer, bits, index, index_size_bits);
+            L_sort_manager.AdvanceTo(bucketNumber);
+            
             added_to_cache++;
 
             // Every EPP entries, writes a park
