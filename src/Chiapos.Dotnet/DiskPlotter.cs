@@ -306,10 +306,10 @@ namespace Chiapos.Dotnet
                         num_buckets,
                         log_num_buckets,
                         phaseFlags);
-                    p3.PrintElapsed("Checkpont. Time for phase 3 =");
+                    p3.PrintElapsed("Checkpoint. Time for phase 3 =");
 
                     Console.WriteLine(
-                        $"Starting phase 4/4: Write Checkpoint tables into {tmp_2_filename} ... {DateTime.Now}");
+                        $"Starting phase 4/4: Write checkpoint tables into {tmp_2_filename} ... {DateTime.Now}");
                     var p4 = new PerformanceTimer();
                     new Phase4().RunPhase4(k, (byte) (k + 1), tmp2_disk, res, phaseFlags, 16);
                     p4.PrintElapsed("Checkpoint. Time for phase 4 =");
