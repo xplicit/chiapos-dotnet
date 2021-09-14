@@ -228,6 +228,7 @@ namespace Chiapos.Dotnet
             return WriteBytesToBuffer(dstBuffer, startBit, srcBuffer, bitLength);
         }
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int WriteBytesToBuffer(Span<byte> dstBuffer, int startBit, ulong value, int bitLength)
         {
             var dstSpan = dstBuffer.Slice(startBit >> BitShiftPerByte,
