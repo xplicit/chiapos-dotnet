@@ -52,20 +52,24 @@ namespace Chiapos.Dotnet
             // These are used for sorting on disk. The sort on disk code needs to know how
             // many elements are in each bucket.
             var table_sizes = new List<ulong> {0, 0, 0, 0, 0, 0, 0, 0};
-            ManualResetEvent[] completion = new ManualResetEvent[num_threads];
+
+            int fileSaveSemaphore = num_threads;
+            var fileSaveSemaphoreEvt = new ManualResetEvent(false);
+            int completionSemaphore = num_threads;
+            var completion = new ManualResetEvent(false);
 
 #if !SKIPF1
             {
                 // Start of parallel execution
-                var threads = new List<Thread>();
                 for (int i = 0; i < num_threads; i++)
                 {
                     var index = i;
-                    completion[i] = new ManualResetEvent(false);
-                    ThreadPool.QueueUserWorkItem(_ => F1thread(index, k, id, completion[index]));
+                    ThreadPool.QueueUserWorkItem(_ => F1thread(num_threads, index, k, id, 
+                        ref fileSaveSemaphore, fileSaveSemaphoreEvt,
+                        ref completionSemaphore, completion));
                 }
 
-                ManualResetEvent.WaitAll(completion);
+                completion.WaitOne();
 
                 // end of parallel execution
             }
@@ -218,7 +222,9 @@ namespace Chiapos.Dotnet
             return table_sizes;
         }
 
-        void F1thread(int index, byte k, byte[] id, ManualResetEvent completion)
+        void F1thread(int num_threads, int index, byte k, byte[] id, 
+            ref int fileSaveSemaphore, ManualResetEvent fileSaveSemaphoreEvt,
+            ref int completionSemaphore, ManualResetEvent completion)
         {
             uint entry_size_bytes = 16;
             int bucketBits = globals.L_sort_manager.BucketBits;
@@ -229,13 +235,11 @@ namespace Chiapos.Dotnet
 
             F1Calculator f1 = new F1Calculator(k, id);
 
-            byte[] right_writer_buf = new byte[right_buf_entries * entry_size_bytes];
-
             // Instead of computing f1(1), f1(2), etc, for each x, we compute them in batches
             // to increase CPU efficency.
             for (ulong lp = (ulong) index;
                 lp <= 1UL << (k - (int) Constants.kBatchSizes);
-                lp = lp + (ulong) globals.num_threads)
+                lp = lp + (ulong) num_threads)
             {
                 // For each pair x, y in the batch
 
@@ -259,30 +263,24 @@ namespace Chiapos.Dotnet
                     
                     globals.L_sort_manager.AdvanceTo(bucketNumber);
                     
-                    /*
-                    UInt128 entry;
-
-                    entry = (UInt128) f1_entries[i] << (128 - Constants.kExtraBits - k);
-                    entry |= (UInt128) x << (128 - Constants.kExtraBits - 2 * k);
-                    Util.IntTo16Bytes(
-                        new Span<byte>(right_writer_buf, (int) (i * entry_size_bytes), (int) entry_size_bytes),
-                        entry);
-                    right_writer_count++;
-                    */
                     x++;
                 }
-
-                // Write it out
-                /*
-                for (uint i = 0; i < right_writer_count; i++)
-                {
-                    globals.L_sort_manager.AddToCache(
-                        new ReadOnlySpan<byte>(right_writer_buf, (int) (i * entry_size_bytes),
-                            (int) entry_size_bytes));
-                }
-                */
-                
             }
+            
+            if (Interlocked.Decrement(ref fileSaveSemaphore) == 0) 
+                fileSaveSemaphoreEvt.Set();
+
+            fileSaveSemaphoreEvt.WaitOne();
+            
+            //Flush data in parallel
+            for (int i = 0; i < (1 << globals.L_sort_manager.BucketBits); i++)
+            {
+                if (i % num_threads == index)
+                    globals.L_sort_manager.FlushFileCache(i);
+            }
+
+            if (Interlocked.Decrement(ref completionSemaphore) == 0) 
+                completion.Set();
 
             completion.Set();
         }

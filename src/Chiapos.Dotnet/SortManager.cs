@@ -270,6 +270,12 @@ namespace Chiapos.Dotnet
         }
 
 
+        public void FlushFileCache(int index)
+        {
+            buckets_[index].file.FlushCache();
+            buckets_[index].file.Close();
+        }
+        
         public void FlushCache()
         {
             foreach (var bucket in buckets_)
