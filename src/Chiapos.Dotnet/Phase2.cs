@@ -91,13 +91,12 @@ namespace Chiapos.Dotnet
 
                 for (ulong read_index = 0; read_index < table_size; ++read_index, read_cursor += entry_size)
                 {
-                    var entry = disk.Read(read_cursor, entry_size);
-
                     ulong entry_pos_offset = 0;
                     if (table_index == 7)
                     {
                         // table 7 is special, we never drop anything, so just build
                         // next_bitfield
+                        var entry = disk.Read(read_cursor, entry_size);
                         entry_pos_offset = Util.SliceInt64FromBytes(entry, k, pos_offset_size);
                     }
                     else
@@ -108,6 +107,7 @@ namespace Chiapos.Dotnet
                             continue;
                         }
 
+                        var entry = disk.Read(read_cursor, entry_size);
                         entry_pos_offset = Util.SliceInt64FromBytes(entry, 0, pos_offset_size);
                     }
 
@@ -155,14 +155,13 @@ namespace Chiapos.Dotnet
 
                 for (ulong read_index = 0; read_index < table_size; ++read_index, read_cursor += entry_size)
                 {
-                    var entry = disk.Read(read_cursor, entry_size);
-
                     ulong entry_f7 = 0;
                     ulong entry_pos_offset;
                     if (table_index == 7)
                     {
                         // table 7 is special, we never drop anything, so just build
                         // next_bitfield
+                        var entry = disk.Read(read_cursor, entry_size);
                         entry_f7 = Util.SliceInt64FromBytes(entry, 0, k);
                         entry_pos_offset = Util.SliceInt64FromBytes(entry, k, pos_offset_size);
                     }
@@ -171,6 +170,7 @@ namespace Chiapos.Dotnet
                         // skipping
                         if (!current_bitfield.Get(read_index)) continue;
 
+                        var entry = disk.Read(read_cursor, entry_size);
                         entry_pos_offset = Util.SliceInt64FromBytes(entry, 0, pos_offset_size);
                     }
 
