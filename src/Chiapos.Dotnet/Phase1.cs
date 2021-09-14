@@ -221,6 +221,7 @@ namespace Chiapos.Dotnet
         void F1thread(int index, byte k, byte[] id, ManualResetEvent completion)
         {
             uint entry_size_bytes = 16;
+            int bucketBits = globals.L_sort_manager.BucketBits;
             ulong max_value = 1UL << k;
             ulong right_buf_entries = 1UL << (int) Constants.kBatchSizes;
 
@@ -248,6 +249,17 @@ namespace Chiapos.Dotnet
                 f1.CalculateBuckets(x, loopcount, f1_entries);
                 for (uint i = 0; i < loopcount; i++)
                 {
+                    
+                    var value = f1_entries[i];
+                    var bucketNumber = Util.GetBucketNumber(value, k + Constants.kExtraBits, bucketBits);
+                    var span = globals.L_sort_manager.GetBuffer(bucketNumber);
+
+                    int bits = Bits2.WriteBytesToBuffer(span, 0, value, k + Constants.kExtraBits);
+                    Bits2.WriteBytesToBuffer(span, bits, x, k);
+                    
+                    globals.L_sort_manager.AdvanceTo(bucketNumber);
+                    
+                    /*
                     UInt128 entry;
 
                     entry = (UInt128) f1_entries[i] << (128 - Constants.kExtraBits - k);
@@ -256,16 +268,20 @@ namespace Chiapos.Dotnet
                         new Span<byte>(right_writer_buf, (int) (i * entry_size_bytes), (int) entry_size_bytes),
                         entry);
                     right_writer_count++;
+                    */
                     x++;
                 }
 
                 // Write it out
+                /*
                 for (uint i = 0; i < right_writer_count; i++)
                 {
                     globals.L_sort_manager.AddToCache(
                         new ReadOnlySpan<byte>(right_writer_buf, (int) (i * entry_size_bytes),
                             (int) entry_size_bytes));
                 }
+                */
+                
             }
 
             completion.Set();

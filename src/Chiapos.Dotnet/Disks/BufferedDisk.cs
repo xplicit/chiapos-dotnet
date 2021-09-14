@@ -7,7 +7,7 @@ namespace Chiapos.Dotnet.Disks
         private readonly FileDisk disk;
         private ulong filesize;
         
-        const ulong write_cache = 1024 * 1024;
+        const ulong write_cache_length = 1024 * 1024;
         const ulong read_ahead = 1024 * 1024;
 
         // the file offset the read buffer was read from
@@ -17,8 +17,8 @@ namespace Chiapos.Dotnet.Disks
 
         // the file offset the write buffer should be written back to
         // the write buffer is *only* for contiguous and sequential writes
-        ulong write_buffer_start_ = ulong.MaxValue;
-        byte[] write_buffer_ = new byte[write_cache];
+        ulong write_buffer_start_ = 0;
+        byte[] write_buffer_ = new byte[write_cache_length];
         ulong write_buffer_size_ = 0;
 
         public BufferedDisk(FileDisk disk, ulong filesize)
@@ -87,7 +87,7 @@ namespace Chiapos.Dotnet.Disks
         {
             if (begin == write_buffer_start_ + write_buffer_size_)
             {
-                if (write_buffer_size_ + (ulong)memcache.Length <= write_cache)
+                if (write_buffer_size_ + (ulong)memcache.Length <= write_cache_length)
                 {
                     memcache.CopyTo(new Span<byte>(write_buffer_, (int)write_buffer_size_, write_buffer_.Length - (int)write_buffer_size_));
                     write_buffer_size_ += (ulong)memcache.Length;
@@ -97,7 +97,7 @@ namespace Chiapos.Dotnet.Disks
                 FlushCache();
             }
 
-            if (write_buffer_size_ == 0 && write_cache >= (ulong)memcache.Length)
+            if (write_buffer_size_ == 0 && write_cache_length >= (ulong)memcache.Length)
             {
                 write_buffer_start_ = begin;
                 memcache.CopyTo(new Span<byte>(write_buffer_, (int)write_buffer_size_, write_buffer_.Length - (int)write_buffer_size_));
@@ -124,7 +124,7 @@ namespace Chiapos.Dotnet.Disks
             read_buffer_ = null;
             read_buffer_size_ = 0;
 
-            write_buffer_start_ = ulong.MaxValue;
+            write_buffer_start_ = 0;
             write_buffer_size_ = 0;
         }
 
@@ -150,5 +150,22 @@ namespace Chiapos.Dotnet.Disks
         }
 
         public string GetFileName() => disk.GetFileName();
+
+        public Span<byte> GetBuffer(ushort entrySize)
+        {
+            if (write_buffer_size_ + entrySize > write_cache_length)
+            {
+                ulong savedBytes = write_buffer_size_;
+                FlushCache();
+                write_buffer_start_ += savedBytes;
+            }
+
+            return new Span<byte>(write_buffer_, (int)write_buffer_size_, entrySize);
+        }
+
+        public void AdvanceTo(ushort entrySize)
+        {
+            write_buffer_size_ += entrySize;
+        }
     }
 }

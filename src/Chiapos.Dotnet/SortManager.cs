@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using Chiapos.Dotnet.Disks;
 
 namespace Chiapos.Dotnet
@@ -35,6 +36,10 @@ namespace Chiapos.Dotnet
         ulong next_bucket_to_sort = 0;
         byte[] entry_buf_;
         SortStrategy strategy_;
+
+        public ushort EntrySize => entry_size_;
+
+        public int BucketBits => (int)log_num_buckets_;
 
         public SortManager(
             ulong memory_size,
@@ -318,6 +323,21 @@ namespace Chiapos.Dotnet
 
         public void Reset()
         {
+        }
+
+        public Span<byte> GetBuffer(byte bucketNumber)
+        {
+            bucket_t b = buckets_[bucketNumber];
+            Monitor.Enter(b.syncRoot);
+            return b.file.GetBuffer(entry_size_);
+        }
+
+        public void AdvanceTo(byte bucketNumber)
+        {
+            bucket_t b = buckets_[bucketNumber];
+            b.file.AdvanceTo(entry_size_);
+            b.write_pointer += entry_size_;
+            Monitor.Exit(b.syncRoot);
         }
     }
 }

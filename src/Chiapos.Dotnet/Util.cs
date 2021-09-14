@@ -13,6 +13,11 @@ namespace Chiapos.Dotnet
 
         public static int ByteAlign(int num_bits) { return (num_bits + (8 - ((num_bits) % 8)) % 8); }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte GetBucketNumber(ulong value, int valueBitLength, int numberOfBucketBits)
+        {
+            return (byte)(value >> (valueBitLength - numberOfBucketBits));
+        }
         public static ulong ExtractNum(ReadOnlySpan<byte> buffer, uint len, uint begin_bits, uint take_bits)
         {
             if ((begin_bits + take_bits) / 8 > len - 1) {
@@ -67,8 +72,9 @@ namespace Chiapos.Dotnet
         public static ulong EightBytesToInt(ReadOnlySpan<byte> bytes) =>
             BinaryPrimitives.ReadUInt64BigEndian(bytes.Slice(0, 8));
 
-        public static bool IntToTwoBytes(Span<byte> bytes, ushort value) =>
-            BinaryPrimitives.TryWriteUInt16BigEndian(bytes, value);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void IntToTwoBytes(Span<byte> bytes, ushort value) =>
+            BinaryPrimitives.WriteUInt16BigEndian(bytes, value);
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void IntTo16Bytes(Span<byte> result, UInt128 input)
@@ -79,6 +85,7 @@ namespace Chiapos.Dotnet
 
        
         // Used to encode deltas object size
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void IntToTwoBytesLE(Span<byte> result, ushort input)
         {
             //Check for endiannes
