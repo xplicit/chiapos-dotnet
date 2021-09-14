@@ -208,7 +208,7 @@ namespace Chiapos.Dotnet
                     num_threads,
                     phaseFlags
                 );
-                p1.PrintElapsed("Time for phase 1 =");
+                p1.PrintElapsed("Checkpoint. Time for phase 1 =");
 
                 ulong finalsize = 0;
 
@@ -286,7 +286,7 @@ namespace Chiapos.Dotnet
                         num_buckets,
                         log_num_buckets,
                         phaseFlags);
-                    p2.PrintElapsed("Time for phase 2 =");
+                    p2.PrintElapsed("Checkpoint. Time for phase 2 =");
 
                     // Now we open a new file, where the final contents of the plot will be stored.
                     uint header_size = WriteHeader(tmp2_disk, k, id, memo);
@@ -306,13 +306,13 @@ namespace Chiapos.Dotnet
                         num_buckets,
                         log_num_buckets,
                         phaseFlags);
-                    p3.PrintElapsed("Time for phase 3 =");
+                    p3.PrintElapsed("Checkpont. Time for phase 3 =");
 
                     Console.WriteLine(
                         $"Starting phase 4/4: Write Checkpoint tables into {tmp_2_filename} ... {DateTime.Now}");
                     var p4 = new PerformanceTimer();
                     new Phase4().RunPhase4(k, (byte) (k + 1), tmp2_disk, res, phaseFlags, 16);
-                    p4.PrintElapsed("Time for phase 4 =");
+                    p4.PrintElapsed("Checkpoint. Time for phase 4 =");
                     finalsize = res.final_table_begin_pointers[11];
                 }
 
@@ -331,7 +331,7 @@ namespace Chiapos.Dotnet
                     $"Approximate working space used (without final file): {(double) total_working_space / (1024 * 1024 * 1024)} GiB");
 
                 Console.WriteLine($"Final File size: {(double) finalsize / (1024 * 1024 * 1024)} GiB");
-                all_phases.PrintElapsed("Total time =");
+                all_phases.PrintElapsed("Checkpoint. Total time =");
             }
 
             foreach (var p in tmp_1_filenames)

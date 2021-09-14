@@ -71,7 +71,7 @@ namespace Chiapos.Dotnet
             }
 
             globals.L_sort_manager.FlushCache();
-            f1_start_time.PrintElapsed("F1 complete, time:");
+            f1_start_time.PrintElapsed("Checkpoint. F1 complete, time:");
 #endif
             ulong prevtableentries = 1UL << k;
             table_sizes[1] = x + 1;
