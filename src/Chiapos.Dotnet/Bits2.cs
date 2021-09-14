@@ -188,7 +188,7 @@ namespace Chiapos.Dotnet
             return WriteBytesToBuffer(dstBuffer, startBit, srcBuffer, bitLength);
         }
         
-        public static int WriteBytesToBuffer(Span<byte> dstBuffer, int startBit, ulong value, int bitLength)
+        public static int WriteBytesToBufferOld2(Span<byte> dstBuffer, int startBit, ulong value, int bitLength)
         {
             var dstSpan = dstBuffer.Slice(startBit >> BitShiftPerByte,
                 GetByteArrayLengthFromBitLength(startBit + bitLength) - (startBit >> BitShiftPerByte));
@@ -227,6 +227,52 @@ namespace Chiapos.Dotnet
             BinaryPrimitives.WriteUInt64BigEndian(srcBuffer, value << (BitsPerInt64 - bitLength));
             return WriteBytesToBuffer(dstBuffer, startBit, srcBuffer, bitLength);
         }
+        
+        public static int WriteBytesToBuffer(Span<byte> dstBuffer, int startBit, ulong value, int bitLength)
+        {
+            var dstSpan = dstBuffer.Slice(startBit >> BitShiftPerByte,
+                GetByteArrayLengthFromBitLength(startBit + bitLength) - (startBit >> BitShiftPerByte));
+
+            int startShift = startBit & BitShiftMask;
+            int dstBits = bitLength;
+
+            if (startShift > 0)
+            {
+                dstBits -= (BitsPerByte - startShift);
+                dstSpan[0] |= (byte)(value >> dstBits);
+                dstSpan = dstSpan[1..];
+            }
+
+            if (dstBits > BitsPerInt64 - BitsPerByte)
+            {
+                BinaryPrimitives.WriteUInt64BigEndian(dstSpan, value << (BitsPerInt64 - dstBits));
+                return startBit + bitLength;
+            }
+
+            if (dstBits >= 32)
+            {
+                BinaryPrimitives.WriteUInt32BigEndian(dstSpan, (uint)(value >> (dstBits - 32)));
+                dstBits -= 32;
+                dstSpan = dstSpan[4..];
+                if (dstBits == 0)
+                    return startBit + bitLength;
+            }
+            
+            int byteShift = dstBits - BitsPerByte;
+            int dstIndex = 0;
+
+            while (dstBits > BitsPerByte)
+            {
+                dstSpan[dstIndex++] = (byte)(value >> byteShift);
+                byteShift -= BitsPerByte;
+                dstBits -= BitsPerByte;
+            }
+            
+            dstSpan[dstIndex] = (byte)(value << (BitsPerByte - dstBits));
+                
+            return startBit + bitLength;
+        }
+
         
         public static int WriteBytesToBuffer(Span<byte> dstBuffer, int startBit, UInt128 value, int bitLength)
         {

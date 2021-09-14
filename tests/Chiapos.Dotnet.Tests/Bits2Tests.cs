@@ -340,6 +340,27 @@ namespace Chiapos.Dotnet.Tests
             AssertBitsArray(actual, expected, 31 + 75 + 75);
         }
 
+        [Test]
+        public void WriteBytes_UInt64_Slice6_32BitValue()
+        {
+            var actual = new byte [5];
+            actual[0] = 0b_1111_0100;
+            byte[] expected = { 0xF7, 0x2A, 0xAA, 0xAA, 0xA8 };
 
+            int bits = Bits2.WriteBytesToBuffer(actual, 6, 0x00000000_CAAAAAAA, 32);
+            Assert.That(bits, Is.EqualTo(32 + 6));
+            Assert.That(actual.SequenceEqual(expected));
+        }
+        
+        [Test]
+        public void WriteBytes_UInt64_Slice0_38BitValue()
+        {
+            var actual = new byte [5];
+            byte[] expected = { 0xFF, 0x2A, 0xAA, 0xAA, 0xA8 };
+
+            int bits = Bits2.WriteBytesToBuffer(actual, 0, 0x0000003F_CAAAAAAA, 38);
+            Assert.That(bits, Is.EqualTo(38));
+            Assert.That(actual.SequenceEqual(expected));
+        }
     }
 }
