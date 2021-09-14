@@ -30,12 +30,14 @@ namespace Chiapos.Dotnet
             byte pos_size = k;
             byte pos_offset_size = (byte) (pos_size + Constants.kOffsetSize);
             byte write_counter_shift = (byte) (128 - k);
+            int write_counter_size = k;
             byte pos_offset_shift = (byte) (write_counter_shift - pos_offset_size);
             byte f7_shift = (byte) (128 - k);
             byte t7_pos_offset_shift = (byte) (f7_shift - pos_offset_size);
             byte new_entry_size = (byte)EntrySizes.GetKeyPosOffsetSize(k);
 
             var new_table_sizes = new List<ulong> {0, 0, 0, 0, 0, 0, 0, table_sizes[7]};
+            Span<byte> bytes = stackalloc byte[16];
 
             // Iterates through each table, starting at 6 & 7. Each iteration, we scan
             // the current table twice. In the first scan, we:
@@ -182,7 +184,6 @@ namespace Chiapos.Dotnet
                     (entry_pos, entry_offset) = index.Lookup(entry_pos, entry_offset);
                     entry_pos_offset = (entry_pos << (int) Constants.kOffsetSize) | entry_offset;
 
-                    var bytes =new byte[16];
                     if (table_index == 7)
                     {
                         // table 7 is already sorted by pos, so we just rewrite the
@@ -191,18 +192,18 @@ namespace Chiapos.Dotnet
                         new_entry |= (UInt128) entry_pos_offset << t7_pos_offset_shift;
                         Util.IntTo16Bytes(bytes, new_entry);
 
-                        disk.Write(read_index * entry_size, new ReadOnlySpan<byte>(bytes, 0,(int)entry_size));
+                        disk.Write(read_index * entry_size, bytes.Slice(0, (int)entry_size));
                     }
                     else
                     {
                         // The new entry is slightly different. Metadata is dropped, to
                         // save space, and the counter of the entry is written (sort_key). We
                         // use this instead of (y + pos + offset) since its smaller.
-                        UInt128 new_entry = (UInt128) write_counter << write_counter_shift;
-                        new_entry |= (UInt128) entry_pos_offset << pos_offset_shift;
-                        Util.IntTo16Bytes(bytes, new_entry);
-
-                        sort_manager.AddToCache(bytes);
+                        byte bucketNumber = sort_manager.GetBucketNumber(entry_pos_offset, pos_offset_size);
+                        var buffer = sort_manager.GetBuffer(bucketNumber);
+                        int bits = Bits2.WriteBytesToBuffer(buffer, 0, write_counter, write_counter_size);
+                        Bits2.WriteBytesToBuffer(buffer, bits, entry_pos_offset, pos_offset_size);
+                        sort_manager.AdvanceTo(bucketNumber);
                     }
 
                     ++write_counter;
