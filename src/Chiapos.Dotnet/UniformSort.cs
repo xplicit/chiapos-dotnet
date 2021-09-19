@@ -25,7 +25,8 @@ namespace Chiapos.Dotnet
             int bits_begin)
         {
             ulong memory_len = Util.RoundSize(num_entries) * (ulong) entry_len;
-            var swap_space = new byte[entry_len];
+            Span<byte> memorySpan = memory.AsSpan(0, (int)memory_len);
+            Span<byte> swapSpace = stackalloc byte[entry_len];
             var buffer = new byte[BUF_SIZE + 7];
             ulong bucket_length = 0;
             // The number of buckets needed (the smallest power of 2 greater than 2 * num_entries).
@@ -51,30 +52,30 @@ namespace Chiapos.Dotnet
                 // First unique bits in the entry give the expected position of it in the sorted array.
                 // We take 'bucket_length' bits starting with the first unique one.
                 int pos =
-                    (int) Util.ExtractNum(new ReadOnlySpan<byte>(buffer, buf_ptr, buffer.Length - buf_ptr),
+                    (int) Util.ExtractNum(new ReadOnlySpan<byte>(buffer, buf_ptr, buffer.Length - buf_ptr), 
                         (uint) entry_len, (uint) bits_begin, (uint) bucket_length)
                     * entry_len;
+                var memoryEntry = new Span<byte>(memory, pos, entry_len);
+                var bufferEntry = new Span<byte>(buffer, buf_ptr, entry_len);
+
                 // As long as position is occupied by a previous entry...
-                while (!IsPositionEmpty(new ReadOnlySpan<byte>(memory, pos, entry_len), entry_len) &&
-                       (ulong) pos < memory_len)
+                while (!IsPositionEmpty(memoryEntry, entry_len) && (ulong) pos < memory_len)
                 {
                     // ...store there the minimum between the two and continue to push the higher one.
-                    if (Util.MemCmpBits(
-                        new ReadOnlySpan<byte>(memory, pos, entry_len),
-                        new ReadOnlySpan<byte>(buffer, buf_ptr, entry_len),
-                        entry_len, bits_begin) > 0)
+                    if (Util.MemCmpBits(memoryEntry, bufferEntry, entry_len, bits_begin) > 0)
                     {
-                        Buffer.BlockCopy(memory, pos, swap_space, 0, entry_len);
-                        Buffer.BlockCopy(buffer, buf_ptr, memory, pos, entry_len);
-                        Buffer.BlockCopy(swap_space, 0, buffer, buf_ptr, entry_len);
+                        memoryEntry.CopyTo(swapSpace);
+                        bufferEntry.CopyTo(memoryEntry);
+                        swapSpace.CopyTo(bufferEntry);
                         swaps++;
                     }
 
                     pos += entry_len;
+                    memoryEntry = new Span<byte>(memory, pos, entry_len);
                 }
 
                 // Push the entry in the first free spot.
-                Buffer.BlockCopy(buffer, buf_ptr, memory, pos, entry_len);
+                bufferEntry.CopyTo(memoryEntry);
                 buf_ptr += entry_len;
             }
 
@@ -84,11 +85,12 @@ namespace Chiapos.Dotnet
                 (ulong) entries_written < num_entries && (ulong) pos < memory_len;
                 pos += entry_len)
             {
-                if (!IsPositionEmpty(new ReadOnlySpan<byte>(memory, (int) pos, entry_len), entry_len))
+                var memoryEntry = new Span<byte>(memory, pos, entry_len);
+                if (!IsPositionEmpty(memoryEntry, entry_len))
                 {
                     // We've found an entry.
                     // write the stored entry itself.
-                    Buffer.BlockCopy(memory, pos, memory, entries_written * entry_len, entry_len);
+                    memoryEntry.CopyTo(new Span<byte>(memory, entries_written * entry_len, entry_len));
                     entries_written++;
                 }
             }
