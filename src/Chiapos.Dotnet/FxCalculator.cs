@@ -8,8 +8,12 @@ namespace Chiapos.Dotnet
     public class FxCalculator
     {
         private static object syncRoot = new();
-        private static bool initialized;
-        private static readonly ushort[,,] L_targets = new ushort[2, Constants.kBC, Constants.kExtraBitsPow];
+        private static bool isInitialized;
+        //instead of using 3-dimensional array we use one-dimensional
+        //private static readonly ushort[,,] L_targets = new ushort[2, Constants.kBC, Constants.kExtraBitsPow];
+        private static readonly ushort[] L_targets = new ushort[2 * Constants.kBC * Constants.kExtraBitsPow];
+        const int shiftArray1 = Constants.kExtraBits;
+        const int shiftArray2 = Constants.kExtraBits + 1; // 1 is power of 2 for parity dimension
 
 
         byte k_;
@@ -37,11 +41,12 @@ namespace Chiapos.Dotnet
 
         void load_tables()
         {
-            if (initialized) return;
+            if (isInitialized) return;
 
             lock (syncRoot)
             {
-                if (initialized) return;
+                if (isInitialized) return;
+                var span = L_targets.AsSpan(0, L_targets.Length);
 
                 for (byte parity = 0; parity < 2; parity++)
                 {
@@ -53,12 +58,12 @@ namespace Chiapos.Dotnet
                             ushort yr =
                                 (ushort) (((indJ + m) % Constants.kB) * Constants.kC +
                                           (((2 * m + parity) * (2 * m + parity) + i) % Constants.kC));
-                            L_targets[parity, i, m] = yr;
+                            span[(parity << shiftArray1) + (i << shiftArray2) + m] = yr;
                         }
                     }
                 }
 
-                initialized = true;
+                isInitialized = true;
             }
         }
 
@@ -161,13 +166,14 @@ namespace Chiapos.Dotnet
                 rmap_clean.Add((ushort) r_y);
             }
 
+            var L_targets_span = L_targets.AsSpan(0, L_targets.Length);
             ulong remove_y = remove - Constants.kBC;
             for (ushort pos_L = 0; pos_L < bucket_L.Count; pos_L++)
             {
-                ulong r = bucket_L[pos_L].y - remove_y;
+                ushort r = (ushort)(bucket_L[pos_L].y - remove_y);
                 for (byte i = 0; i < Constants.kExtraBitsPow; i++)
                 {
-                    ushort r_target = L_targets[parity, r, i];
+                    ushort r_target = L_targets_span[(parity << shiftArray1) + (r << shiftArray2) + i];
                     var rmap_target = rmap[r_target];
                     for (ushort j = 0; j < rmap_target.count; j++)
                     {
