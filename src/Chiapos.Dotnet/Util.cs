@@ -1,6 +1,6 @@
 using System;
 using System.Buffers.Binary;
-using System.Reflection;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Dirichlet.Numerics;
 
@@ -104,6 +104,51 @@ namespace Chiapos.Dotnet
             return result + 50;
         }
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe bool IsPositionEmpty(ReadOnlySpan<byte> memory)
+        {
+            int len = memory.Length;
+
+            fixed (byte* memoryPtr = memory)
+            {
+                byte* ptr = memoryPtr;
+                int align = (8 - (int)((ulong)ptr & 7)) & 7;
+                for (int i = 0; i < Math.Min(align, len); i++)
+                {
+                    if (*ptr != 0)
+                        return false;
+                    ptr++;
+                    len--;
+                }
+                
+                while (len >= 8)
+                {
+                    if (*(long*)ptr != 0)
+                        return false;
+                    ptr += 8;
+                    len -= 8;
+                }
+
+                while (len >= 4)
+                {
+                    if (*(int*)ptr != 0)
+                        return false;
+                    ptr += 4;
+                    len -= 4;
+                }
+
+                while (len > 0)
+                {
+                    if (*ptr != 0)
+                        return false;
+                    ptr++;
+                    len--;
+                }
+            }
+            
+            return true;
+        }
+        
         /*
          * Like memcmp, but only compares starting at a certain bit.
          */
@@ -114,6 +159,13 @@ namespace Chiapos.Dotnet
             byte mask = (byte) ((1 << (8 - (bits_begin & 7))) - 1);
             left_arr = left_arr.Slice(start_byte, len - start_byte);
             right_arr = right_arr.Slice(start_byte, len - start_byte);
+            
+            if (left_arr[0] != right_arr[0] &&
+                (left_arr[0] & mask) == (right_arr[0] & mask))
+            {
+                Console.WriteLine("1");
+            }
+
 
             if ((left_arr[0] & mask) != (right_arr[0] & mask))
             {
@@ -132,6 +184,96 @@ namespace Chiapos.Dotnet
 
             return 0;
         }
+        
+        
+
+        public static Dictionary<int,Dictionary<int, int>> swapStats = new(); 
+
+        public static int MemCmpBitsAndSwap(Span<byte> left_arr, Span<byte> right_arr, int len, int bits_begin)
+        {
+            int start_byte = bits_begin >> 3;
+            byte mask = (byte) ((1 << (8 - (bits_begin & 7))) - 1);
+            var leftSpan = left_arr.Slice(start_byte, len - start_byte);
+            var rightSpan = right_arr.Slice(start_byte, len - start_byte);
+#if SWAP_STATS
+            Dictionary<int, int> stats;
+
+            if (swapStats.ContainsKey(len))
+                stats = swapStats[len];
+            else
+            {
+                stats = new Dictionary<int, int>();
+                swapStats.Add(len, stats);
+            }
+#endif
+            
+            if ((leftSpan[0] & mask) != (rightSpan[0] & mask))
+            {
+                if ((leftSpan[0] & mask) > (rightSpan[0] & mask))
+                {
+                    Span<byte> swapSpace = stackalloc byte[len];
+                    left_arr.Slice(0, len).CopyTo(swapSpace);
+                    right_arr.Slice(0, len).CopyTo(left_arr);
+                    swapSpace.CopyTo(right_arr);
+
+#if SWAP_STATS
+                    if (stats.ContainsKey(len))
+                        stats[len]++;
+                    else
+                    {
+                        stats.Add(len, 1);
+                    }
+#endif                    
+                    return len;
+                }
+
+                return 0;
+            }
+            
+            for (int i = 1; i < leftSpan.Length; i++)
+            {
+                if (leftSpan[i] != rightSpan[i])
+                {
+                    if (leftSpan[i] > rightSpan[i])
+                    {
+                        int swapBytes = leftSpan.Length - i + 1;
+                        Span<byte> swapSpace = stackalloc byte[Math.Max(start_byte, swapBytes)];
+                        
+                        if (start_byte > 0)
+                        {
+                            left_arr.Slice(0, start_byte).CopyTo(swapSpace);
+                            right_arr.Slice(0, start_byte).CopyTo(left_arr);
+                            swapSpace.Slice(0, start_byte).CopyTo(right_arr);
+                        }
+
+                        leftSpan.Slice(i - 1).CopyTo(swapSpace);
+                        rightSpan.Slice(i - 1).CopyTo(leftSpan.Slice(i - 1));
+                        swapSpace.Slice(0, swapBytes).CopyTo(rightSpan.Slice(i - 1));
+#if SWAP_STATS
+                        if (stats.ContainsKey(start_byte))
+                            stats[start_byte]++;
+                        else
+                        {
+                            stats.Add(start_byte, 1);
+                        }
+                        
+                        if (stats.ContainsKey(swapBytes))
+                            stats[swapBytes]++;
+                        else
+                        {
+                            stats.Add(swapBytes, 1);
+                        }
+#endif
+                        return swapBytes + start_byte;
+                    }
+
+                    return 0;
+                }
+            }
+
+            return 0;
+        }
+
         
         public static uint RoundPow2(uint a)
         {

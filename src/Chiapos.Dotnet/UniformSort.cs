@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Chiapos.Dotnet.Disks;
 
 namespace Chiapos.Dotnet
@@ -7,14 +8,6 @@ namespace Chiapos.Dotnet
     public class UniformSort
     {
         const ulong BUF_SIZE = 262144;
-
-        static bool IsPositionEmpty(ReadOnlySpan<byte> memory, int entry_len)
-        {
-            for (int i = 0; i < entry_len; i++)
-                if (memory[i] != 0)
-                    return false;
-            return true;
-        }
 
         public static void SortToMemory(
             FileDisk input_disk,
@@ -59,16 +52,11 @@ namespace Chiapos.Dotnet
                 var bufferEntry = new Span<byte>(buffer, buf_ptr, entry_len);
 
                 // As long as position is occupied by a previous entry...
-                while (!IsPositionEmpty(memoryEntry, entry_len) && (ulong) pos < memory_len)
+                while (!Util.IsPositionEmpty(memoryEntry) && (ulong) pos < memory_len)
                 {
                     // ...store there the minimum between the two and continue to push the higher one.
-                    if (Util.MemCmpBits(memoryEntry, bufferEntry, entry_len, bits_begin) > 0)
-                    {
-                        memoryEntry.CopyTo(swapSpace);
-                        bufferEntry.CopyTo(memoryEntry);
-                        swapSpace.CopyTo(bufferEntry);
-                        swaps++;
-                    }
+                    ulong bytesSwapped = (ulong)Util.MemCmpBitsAndSwap(memoryEntry, bufferEntry, entry_len, bits_begin);
+                    swaps += bytesSwapped;
 
                     pos += entry_len;
                     memoryEntry = new Span<byte>(memory, pos, entry_len);
@@ -86,7 +74,7 @@ namespace Chiapos.Dotnet
                 pos += entry_len)
             {
                 var memoryEntry = new Span<byte>(memory, pos, entry_len);
-                if (!IsPositionEmpty(memoryEntry, entry_len))
+                if (!Util.IsPositionEmpty(memoryEntry))
                 {
                     // We've found an entry.
                     // write the stored entry itself.
