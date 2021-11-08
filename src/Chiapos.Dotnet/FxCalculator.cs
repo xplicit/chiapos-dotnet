@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace Chiapos.Dotnet
 {
@@ -151,9 +152,11 @@ namespace Chiapos.Dotnet
             rmap_clean.Clear();
 
             ulong remove = (bucket_R[0].y / Constants.kBC) * Constants.kBC;
-            for (int pos_R = 0; pos_R < bucket_R.Count; pos_R++)
+            var bucket_R_span = CollectionsMarshal.AsSpan(bucket_R);
+            
+            for (int pos_R = 0; pos_R < bucket_R_span.Length; pos_R++)
             {
-                int r_y = (int) (bucket_R[pos_R].y - remove);
+                int r_y = (int) (bucket_R_span[pos_R].y - remove);
 
                 var rmap_ry = rmap[r_y];
                 
@@ -167,10 +170,12 @@ namespace Chiapos.Dotnet
             }
 
             var L_targets_span = L_targets.AsSpan(0, L_targets.Length);
+            var bucket_L_span = CollectionsMarshal.AsSpan(bucket_L);
+            
             ulong remove_y = remove - Constants.kBC;
-            for (ushort pos_L = 0; pos_L < bucket_L.Count; pos_L++)
+            for (ushort pos_L = 0; pos_L < bucket_L_span.Length; pos_L++)
             {
-                ushort r = (ushort)(bucket_L[pos_L].y - remove_y);
+                ushort r = (ushort)(bucket_L_span[pos_L].y - remove_y);
                 for (byte i = 0; i < Constants.kExtraBitsPow; i++)
                 {
                     ushort r_target = L_targets_span[(parity << shiftArray1) + (r << shiftArray2) + i];

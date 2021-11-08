@@ -772,7 +772,7 @@ namespace Chiapos.Dotnet
             if (table_index == 1) {
                 // For table 1, we only have y and metadata
                 left_entry.y = Util.SliceInt64FromBytes(left_buf, 0, k + (uint)Constants.kExtraBits);
-                left_entry.left_metadata = new Bits2(left_buf, (int)(k + (uint)Constants.kExtraBits), metadata_size);
+                left_entry.left_metadata = new Bits2(left_buf, k + Constants.kExtraBits, metadata_size);
             } else {
                 // For tables 2-6, we we also have pos and offset. We need to read this because
                 // this entry will be written again to the table without the y (and some entries
