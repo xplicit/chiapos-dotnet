@@ -28,23 +28,23 @@ Time in seconds.
 
 | Phase   |    master   | original  | ProofOfSpace  |
 |---------|-------------|-----------|---------------|
-| F1      |    0.497    |    0.546  |    2.508      |
-| Phase1  |  119        |  226      |   56.7        |
-| Phase2  |   20        |  205      |   10.5        |
-| Phase3  |   84        |  107      |   35.4        |
-| Phase4  |    8.84     |    8.66   |    2.1        |
-| Total   |  234        |  548      |  104.7        |
+| F1      |    0.534    |    0.546  |    2.508      |
+| Phase1  |  112        |  226      |   56.7        |
+| Phase2  |   21        |  205      |   10.5        |
+| Phase3  |   82        |  107      |   35.4        |
+| Phase4  |    8.93     |    8.66   |    2.1        |
+| Total   |  225        |  548      |  104.7        |
 
 #### k=32, r=32 Number of Threads: 32
 
 | Phase   |    master   | commit 48960 | ProofOfSpace  | MadMaxPlotter |
 |---------|-------------|--------------|---------------|---------------|
-| F1      |       78    |       78     |      312      |      11       |
-| Phase1  |     28891   |    28891     |     5233      |     634       |
-| Phase2  |      5617   |     5617     |     3975      |     333       | 
-| Phase3  |     22108   |    22108     |     7419      |     319       |
-| Phase4  |      1812   |     1812     |      524      |      49       |
-| Total   |     58430   |    58430     |    17135      |    1345       |
+| F1      |       79    |       78     |      312      |      11       |
+| Phase1  |     27879   |    28891     |     5233      |     634       |
+| Phase2  |      5825   |     5617     |     3975      |     333       | 
+| Phase3  |     18002   |    22108     |     7419      |     319       |
+| Phase4  |      1560   |     1812     |      524      |      49       |
+| Total   |     53268   |    58430     |    17135      |    1345       |
 
 Legend:
    - master   - current development in `master` branch
@@ -74,6 +74,6 @@ Mac:
    * [x] Translate C++ code to C#
    * [x] Debug code and verify correctness of generated plots via ProofOfSpace
    * [x] Make performance metrics
-   * [ ] Write as much tests as possible before start next step
+   * [x] Write as much tests as possible before start next step
    * [ ] Make code/algorithm optimizations and compare results with previous versions
  
