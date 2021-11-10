@@ -16,6 +16,10 @@ namespace Chiapos.Dotnet
         protected const byte BitShiftMask = 7;
         
         protected const int BitsPerInt64 = 64;
+        protected const int BitsPerInt32 = 32;
+        
+        protected const int BitShiftPerAlignedBlock = 6;
+        protected const int BytesPerAlignedBlock = 8;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetByteArrayLengthFromBitLength(int n)
@@ -24,34 +28,33 @@ namespace Chiapos.Dotnet
             return (int)((uint)(n - 1 + (1 << BitShiftPerByte)) >> BitShiftPerByte);
         }
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int GetAlignedByteArrayLengthFromBitLength(int n)
+        {
+            Debug.Assert(n >= 0);
+            return (int)((uint)(n - 1 + (1 << BitShiftPerAlignedBlock)) >> BitShiftPerByte) << BitShiftPerByte;
+        }
+        
         public Bits2(int length)
         {
-            m_array = new byte[GetByteArrayLengthFromBitLength(length)];
+            m_array = new byte[GetAlignedByteArrayLengthFromBitLength(length)];
             m_length = length;
         }
 
         public byte[] GetBuffer() => m_array;
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ulong GetValue()
         {
-            int shift = m_length & BitShiftMask;
+            int shift = m_length & (BitsPerInt64 - 1);
 
-            int endByte = Math.Min(m_array.Length, 8);
-
-            ulong result = 0;
-            int byteShift = 0;
-            for (int i = endByte - 1; i >= 0; i--)
-            {
-                result += (ulong)m_array[i] << byteShift;
-                byteShift += 8;
-            }
-
-            return result >> ((BitsPerByte - shift) & BitShiftMask);
+            ulong result = BinaryPrimitives.ReadUInt64BigEndian(m_array);
+            return result >> ((BitsPerInt64 - shift) & (BitsPerInt64 - 1));
         }
 
         public Bits2(ulong value, int bitLength)
         {
-            m_array = new byte[GetByteArrayLengthFromBitLength(bitLength)];
+            m_array = new byte[BytesPerAlignedBlock];
             m_length = bitLength;
 
             WriteBytesToBuffer(m_array, 0, value, bitLength);
@@ -59,7 +62,7 @@ namespace Chiapos.Dotnet
 
         public Bits2(ReadOnlySpan<byte> buffer, int startBit, int bitLength)
         {
-            m_array = new byte[GetByteArrayLengthFromBitLength(bitLength)];
+            m_array = new byte[GetAlignedByteArrayLengthFromBitLength(bitLength)];
             m_length = bitLength;
 
             var span = buffer.Slice(startBit >> BitShiftPerByte,
@@ -72,7 +75,7 @@ namespace Chiapos.Dotnet
                 span.CopyTo(m_array);
                 if ((bitLength & BitShiftMask) != 0)
                 {
-                    m_array[^1] &= (byte)(256 - (1 << (BitsPerByte - (bitLength & BitShiftMask))));
+                    m_array[GetByteArrayLengthFromBitLength(bitLength) - 1] &= (byte)(256 - (1 << (BitsPerByte - (bitLength & BitShiftMask))));
                 }
                 return;
             }
@@ -106,9 +109,10 @@ namespace Chiapos.Dotnet
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ToBytes(Span<byte> buffer)
         {
-            m_array.AsSpan().CopyTo(buffer);
+            m_array.AsSpan()[..GetByteArrayLengthFromBitLength(m_length)].CopyTo(buffer);
         }
 
         public static int WriteBytesToBuffer(Span<byte> dstBuffer, int startBit, ReadOnlySpan<byte> srcBuffer, int bitLength)
